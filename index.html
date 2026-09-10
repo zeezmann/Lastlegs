@@ -14,14 +14,13 @@
 
 <style>
   :root{
-    --ground:#0A0620; --ground-2:#050310;
-    --surface:#140C33; --surface-2:#1E1350;
-    --line:#33236E; --line-soft:#26195A;
-    --text:#F6F3FF; --muted:#C3B9EA; --dim:#948AC7;
-    --star:#6C8CFF; --star-dim:#3A47A8;
-    --gold:#FFC94A; --gold-dim:#8A6A1E;
-    --hot:#FF3D77;
-    --live:#FF6B8A; --go:#2BE39B;
+    --ground:#05091A; --ground-2:#02040F;
+    --surface:#0C1330; --surface-2:#141D45;
+    --line:#25316B; --line-soft:#1A2350;
+    --text:#EDF1FC; --muted:#A6B4DD; --dim:#7C8ABA;
+    --star:#7FA6FF; --star-dim:#2E4390;
+    --gold:#E7C878; --gold-dim:#7A6432;
+    --live:#FF7A85; --go:#5BD6A4;
     --display:"Oswald","Arial Narrow",sans-serif;
     --body:"Barlow","Helvetica Neue",Arial,sans-serif;
     --mono:"IBM Plex Mono","SFMono-Regular",Consolas,monospace;
@@ -32,9 +31,8 @@
   body{
     background:var(--ground);
     background-image:
-      radial-gradient(1100px 520px at 22% -10%, rgba(108,140,255,.26), transparent 62%),
-      radial-gradient(900px 460px at 82% 4%, rgba(255,61,119,.16), transparent 60%),
-      radial-gradient(900px 500px at 60% 104%, rgba(255,201,74,.10), transparent 62%);
+      radial-gradient(1200px 560px at 50% -12%, rgba(127,166,255,.17), transparent 64%),
+      radial-gradient(820px 460px at 88% 104%, rgba(231,200,120,.09), transparent 62%);
     background-attachment:fixed;
     color:var(--text);font-family:var(--body);font-size:16px;line-height:1.55;
     -webkit-font-smoothing:antialiased;
@@ -44,11 +42,10 @@
   /* ---------- animation ---------- */
   @keyframes riseIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
   @keyframes glowPulse{
-    0%,100%{box-shadow:0 0 0 0 rgba(108,140,255,.45)}
-    50%{box-shadow:0 0 34px 4px rgba(108,140,255,.35)}
+    0%,100%{box-shadow:0 0 0 0 rgba(127,166,255,.30)}
+    50%{box-shadow:0 0 26px 2px rgba(127,166,255,.22)}
   }
   @keyframes countPop{0%{transform:scale(1)}40%{transform:scale(1.35);color:var(--gold)}100%{transform:scale(1)}}
-  @keyframes sweep{0%{transform:translateX(-140%)}100%{transform:translateX(240%)}}
   @keyframes trophyIn{
     0%{opacity:0;transform:scale(.86)}
     60%{opacity:1;transform:scale(1.04)}
@@ -62,17 +59,11 @@
   .eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--star);margin:0 0 12px}
   h1{
     font-family:var(--display);font-weight:700;
-    font-size:clamp(46px,11vw,104px);line-height:.88;
+    font-size:clamp(42px,9.5vw,88px);line-height:.92;
     text-transform:uppercase;text-wrap:balance;margin:0;
-    background:linear-gradient(100deg,#6C8CFF 0%,#F3EFFF 32%,#FFC94A 58%,#FF3D77 84%,#6C8CFF 100%);
-    background-size:250% 100%;
-    -webkit-background-clip:text;background-clip:text;
-    color:transparent;-webkit-text-fill-color:transparent;
-    animation:sheen 9s linear infinite;
-    filter:drop-shadow(0 6px 30px rgba(108,140,255,.35));
+    color:var(--text);letter-spacing:.005em;
   }
-  @keyframes sheen{0%{background-position:0% 50%}100%{background-position:250% 50%}}
-  h1 .thin{font-weight:400;opacity:.75}
+  h1 .thin{color:var(--muted);font-weight:400}
   .tagline{
     font-family:var(--mono);font-size:13px;letter-spacing:.16em;text-transform:uppercase;
     color:var(--gold);margin:16px 0 0;
@@ -109,14 +100,14 @@
     position:relative;overflow:hidden;
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
     min-height:104px;padding:12px 6px;
-    background:linear-gradient(160deg,var(--surface-2),var(--surface));
+    background:var(--surface);
     border:1px solid var(--line);color:var(--text);font-family:inherit;cursor:pointer;
     transition:border-color .18s,transform .18s,box-shadow .18s;
   }
-  .tile:hover:not(:disabled){border-color:var(--star);transform:translateY(-3px);box-shadow:0 10px 28px -12px rgba(108,140,255,.8)}
+  .tile:hover:not(:disabled){border-color:var(--star);transform:translateY(-2px);box-shadow:0 10px 26px -16px rgba(127,166,255,.9)}
   .tile:focus-visible{outline:2px solid var(--star);outline-offset:2px}
   .tile:disabled{cursor:default}
-  .tile.sel{border-color:var(--star);box-shadow:inset 0 0 0 2px var(--star),0 0 26px -6px rgba(108,140,255,.7)}
+  .tile.sel{border-color:var(--star);box-shadow:inset 0 0 0 2px var(--star)}
   .tile .num{font-family:var(--display);font-weight:700;font-size:34px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
   .tile .who{font-family:var(--display);font-size:14px;font-weight:500;letter-spacing:.04em;color:var(--dim);text-align:center;word-break:break-word;line-height:1.1}
   .tile .ini{
@@ -124,19 +115,13 @@
     font-family:var(--display);font-weight:600;font-size:13px;color:#0A0620;
     margin-bottom:1px;
   }
-  .tile.taken{background:linear-gradient(160deg,rgba(108,140,255,.16),rgba(20,12,51,.9));border-color:var(--star-dim)}
+  .tile.taken{background:var(--ground-2);border-color:var(--star-dim)}
   .tile.taken .num{color:var(--muted);font-size:22px}
   .tile.taken .who{color:var(--text);font-size:15px;font-weight:600}
-  .tile:not(.taken)::after{
-    content:"";position:absolute;top:0;bottom:0;width:38%;
-    background:linear-gradient(100deg,transparent,rgba(255,255,255,.10),transparent);
-    animation:sweep 5.5s ease-in-out infinite;pointer-events:none;
-  }
   .tile.fresh{animation:pop .7s cubic-bezier(.2,1.4,.4,1)}
   @keyframes pop{
-    0%{transform:scale(.7) rotate(-6deg);box-shadow:0 0 0 14px rgba(255,201,74,.35)}
-    60%{transform:scale(1.08) rotate(2deg)}
-    100%{transform:scale(1) rotate(0);box-shadow:0 0 0 0 rgba(255,201,74,0)}
+    0%{transform:scale(.86);box-shadow:0 0 0 10px rgba(231,200,120,.22)}
+    100%{transform:scale(1);box-shadow:0 0 0 0 rgba(231,200,120,0)}
   }
 
   .claimbox{margin-top:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:14px;background:var(--surface);border:1px solid var(--line)}
@@ -178,8 +163,8 @@
   table.tbl th + th, table.tbl td + td{padding-left:9px}
   .badge{font-family:var(--display);font-weight:700;font-size:13px;width:28px;height:28px;display:grid;place-items:center;background:var(--surface-2);border:1px solid var(--star-dim);color:var(--star);font-variant-numeric:tabular-nums}
   .grp.b .badge{border-color:var(--gold-dim);color:var(--gold)}
-  tr.qual td{background:linear-gradient(90deg,rgba(108,140,255,.13),transparent 60%)}
-  .grp.b tr.qual td{background:linear-gradient(90deg,rgba(255,201,74,.13),transparent 60%)}
+  tr.qual td{background:linear-gradient(90deg,rgba(127,166,255,.10),transparent 62%)}
+  .grp.b tr.qual td{background:linear-gradient(90deg,rgba(231,200,120,.10),transparent 62%)}
   tr.qual td.pos{color:var(--star);font-weight:700}
   .grp.b tr.qual td.pos{color:var(--gold)}
   tr.qual td.player{color:#fff}
@@ -189,6 +174,13 @@
   .qkey b{color:var(--star);font-weight:500}
   .grp.b .qkey b{color:var(--gold)}
   td.player .club{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--star);font-weight:400;margin-top:3px}
+
+  .grp.ladder{border-top-color:var(--muted);animation:none}
+  .grp.ladder td.grpcell{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+  .grp.ladder td.grpcell.a{color:var(--star)}
+  .grp.ladder td.grpcell.b{color:var(--gold)}
+  .grp.ladder tr.lead td{background:linear-gradient(90deg,rgba(231,200,120,.12),transparent 62%)}
+  .grp.ladder tr.lead td.pos{color:var(--gold);font-weight:700}
 
   .sealed{display:grid;place-items:center;text-align:center;gap:10px;padding:52px 20px;border:1px dashed var(--line);background:var(--surface)}
   .sealed .big{font-family:var(--display);font-weight:700;text-transform:uppercase;font-size:clamp(28px,5.5vw,44px);letter-spacing:.06em;color:var(--muted)}
@@ -263,18 +255,18 @@
   .winner{
     margin-top:16px;padding:34px 20px;text-align:center;
     border:1px solid var(--gold);
-    background:radial-gradient(120% 140% at 50% 0%, rgba(255,201,74,.26), rgba(255,61,119,.10) 55%, transparent 80%);
-    box-shadow:0 0 60px -18px rgba(255,201,74,.7), inset 0 0 40px -22px rgba(255,201,74,.9);
+    background:radial-gradient(120% 140% at 50% 0%, rgba(231,200,120,.20), transparent 72%);
+    box-shadow:0 0 50px -22px rgba(231,200,120,.6), inset 0 0 36px -24px rgba(231,200,120,.8);
     animation:trophyIn .8s cubic-bezier(.2,1.2,.35,1) both;
   }
   .winner .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
   .winner .nm{
     font-family:var(--display);font-weight:700;text-transform:uppercase;
     font-size:clamp(34px,9vw,72px);letter-spacing:.03em;line-height:1;
-    background:linear-gradient(100deg,#FFC94A,#FFF3D0 45%,#FFC94A);
+    background:linear-gradient(100deg,#E7C878,#FFF4D6 45%,#E7C878);
     -webkit-background-clip:text;background-clip:text;
     color:transparent;-webkit-text-fill-color:transparent;
-    filter:drop-shadow(0 4px 22px rgba(255,201,74,.5));
+    filter:drop-shadow(0 4px 18px rgba(231,200,120,.4));
   }
 
   .pool{background:var(--surface);border:1px solid var(--line);padding:20px}
@@ -387,6 +379,20 @@
       <span class="sec-note" id="drawNote">Sealed until all 16 numbers are gone</span>
     </div>
     <div id="resultBody"></div>
+  </section>
+
+  <section id="ladderSec" hidden>
+    <div class="sec-head">
+      <h2>Overall standings</h2>
+      <span class="sec-note">All 16 &middot; league phase</span>
+    </div>
+    <div class="grp ladder">
+      <p class="meta" id="ladderNote">Both groups ranked together</p>
+      <div class="tblwrap">
+        <table class="tbl" id="ladderTbl"></table>
+      </div>
+      <p class="qkey">Bragging rights only &mdash; qualification is decided inside your own group</p>
+    </div>
   </section>
 
   <section id="teamSec" hidden>
@@ -596,11 +602,15 @@
   function playedCount(){ var c = 0; for (var i = 0; i < TOTAL_LEGS; i++){ if (legScore(S.r[i])) c++; } return c; }
   function groupsComplete(){ return playedCount() === TOTAL_LEGS; }
 
-  // A stable colour per player, so everyone gets their own badge.
+  // A stable colour per player, kept inside the palette so 16 badges
+  // still look like one set rather than a bag of Skittles.
+  var BADGES = ["#7FA6FF","#E7C878","#5BD6A4","#9BB4E8","#C8A85A","#6FD3C4",
+                "#A9BFF2","#D9C48C","#7FC9E8","#B0A6D8","#8FD6B0","#E0D0A0",
+                "#93B5FF","#CDB77A","#7ED9D0","#BCC8EC"];
   function colourOf(name){
     var h = 0;
     for (var i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
-    return "hsl(" + (h % 360) + " 82% 66%)";
+    return BADGES[h % BADGES.length];
   }
 
   /* ---------- confetti ---------- */
@@ -619,7 +629,7 @@
     cv.width = W * dpr; cv.height = H * dpr;
     ctx.setTransform(dpr,0,0,dpr,0,0);
 
-    var cols = ["#6C8CFF","#FFC94A","#FF3D77","#2BE39B","#F3EFFF"];
+    var cols = ["#7FA6FF","#E7C878","#EDF1FC","#5BD6A4","#9BB4E8"];
     var bits = [];
     for (var i = 0; i < 160; i++){
       bits.push({
@@ -1085,6 +1095,73 @@
     })();
   }
 
+  /* ---------- overall ladder ---------- */
+
+  function renderLadder(){
+    var sec = $("ladderSec");
+    if (!result){ sec.hidden = true; return; }
+    sec.hidden = false;
+
+    var st = stand();
+    var rows = [];
+    st.A.forEach(function(r){ rows.push({ r:r, g:"A" }); });
+    st.B.forEach(function(r){ rows.push({ r:r, g:"B" }); });
+
+    rows.sort(function(x,y){
+      if (y.r.pts !== x.r.pts) return y.r.pts - x.r.pts;
+      if (y.r.gd !== x.r.gd) return y.r.gd - x.r.gd;
+      if (y.r.gf !== x.r.gf) return y.r.gf - x.r.gf;
+      return x.r.name.localeCompare(y.r.name);
+    });
+
+    var played = playedCount();
+    $("ladderNote").textContent = played
+      ? "All 16 ranked together · " + played + " of " + TOTAL_LEGS + " games played"
+      : "All 16 ranked together · nothing played yet";
+
+    var t = $("ladderTbl");
+    t.innerHTML = '<thead><tr><th class="l"></th><th class="l"></th><th class="l">Player</th>' +
+      '<th class="l">Grp</th><th>P</th><th class="opt">W</th><th class="opt">D</th><th class="opt">L</th>' +
+      '<th class="opt">GF</th><th class="opt">GA</th><th>GD</th><th>Pts</th>' +
+      '<th class="l opt" style="padding-left:12px">Form</th></tr></thead>';
+    var tb = document.createElement("tbody");
+
+    rows.forEach(function(row, i){
+      var r = row.r;
+      var tr = document.createElement("tr");
+      if (i === 0 && played) tr.className = "lead";
+      tr.innerHTML =
+        '<td class="pos">' + (i+1) + '</td>' +
+        '<td class="badge-c"><span class="badge">' + r.num + '</span></td>' +
+        '<td class="player"></td>' +
+        '<td class="grpcell ' + row.g.toLowerCase() + '">' + row.g + '</td>' +
+        '<td>' + r.p + '</td>' +
+        '<td class="opt">' + r.w + '</td><td class="opt">' + r.d + '</td><td class="opt">' + r.l + '</td>' +
+        '<td class="opt">' + r.gf + '</td><td class="opt">' + r.ga + '</td>' +
+        '<td>' + (r.gd > 0 ? "+" : "") + r.gd + '</td>' +
+        '<td class="pts">' + r.pts + '</td>' +
+        '<td class="formcell opt"></td>';
+      var pcell = tr.querySelector(".player");
+      pcell.textContent = r.name;
+      var club = teamOf(r.num);
+      if (club){
+        var cs = document.createElement("span"); cs.className = "club"; cs.textContent = club;
+        pcell.appendChild(cs);
+      }
+      var fc = tr.querySelector(".formcell");
+      if (r.form.length){
+        var box = document.createElement("span"); box.className = "form";
+        r.form.slice(-5).forEach(function(ch){
+          var el = document.createElement("i"); el.className = ch.toLowerCase(); el.textContent = ch;
+          box.appendChild(el);
+        });
+        fc.appendChild(box);
+      } else { fc.textContent = "\u2014"; }
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb);
+  }
+
   /* ---------- club draw ---------- */
 
   function renderTeams(){
@@ -1452,7 +1529,7 @@
   // Rebuilding those under the cursor is what used to eat half-typed scores.
   function renderScoreDependents(){
     standCache = null;
-    renderStatus(); renderResult(); renderKO();
+    renderStatus(); renderResult(); renderLadder(); renderKO();
   }
 
   function typingInAScoreBox(){
@@ -1466,7 +1543,7 @@
       result = computeDraw(); buildTies();
     } else { result = null; ties = []; }
     renderLive(); renderStatus(); renderGrid(); renderClaimBox();
-    renderResult(); renderTeams(); renderFixtures(); renderKO(); renderVerify();
+    renderResult(); renderLadder(); renderTeams(); renderFixtures(); renderKO(); renderVerify();
     firstPaint = false;
   }
 
