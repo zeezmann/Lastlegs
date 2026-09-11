@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Last Legs Cup</title>
-<meta name="description" content="The Last Legs Cup — 16 player FC 26 tournament. Live blind draw, groups, fixtures and knockouts.">
+<title>FIFA Cup</title>
+<meta name="description" content="16 player FC 26 tournament. Live blind draw, groups, fixtures and knockouts.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -38,6 +38,85 @@
     -webkit-font-smoothing:antialiased;
   }
   #confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60}
+
+  /* ---------- opening ceremony ---------- */
+  body.gate-open{overflow:hidden}
+  #gate{
+    position:fixed;inset:0;z-index:50;display:grid;place-items:center;
+    padding:32px 22px;text-align:center;overflow:hidden;
+    background:var(--ground-2);
+    background-image:
+      radial-gradient(900px 620px at 50% 26%, rgba(127,166,255,.22), transparent 66%),
+      radial-gradient(700px 520px at 50% 108%, rgba(231,200,120,.12), transparent 64%);
+    animation:gateIn .5s ease both;
+  }
+  #gate.away{animation:gateOut .55s ease both;pointer-events:none}
+  @keyframes gateIn{from{opacity:0}to{opacity:1}}
+  @keyframes gateOut{to{opacity:0;transform:scale(1.035);visibility:hidden}}
+  #gateStars{position:absolute;inset:0;width:100%;height:100%;opacity:.85;pointer-events:none}
+  .gate-inner{position:relative;max-width:760px;width:100%;z-index:1}
+  .gate-rings{
+    position:absolute;left:50%;top:50%;width:min(112vw,760px);aspect-ratio:1;
+    transform:translate(-50%,-50%);pointer-events:none;z-index:0;opacity:.5;
+  }
+  .gate-rings i{
+    position:absolute;inset:0;margin:auto;border-radius:50%;
+    border:1px solid var(--star-dim);
+    animation:ringOut 3.6s ease-out infinite;
+  }
+  .gate-rings i:nth-child(2){animation-delay:1.2s}
+  .gate-rings i:nth-child(3){animation-delay:2.4s}
+  @keyframes ringOut{
+    0%{width:22%;height:22%;opacity:.55}
+    100%{width:100%;height:100%;opacity:0}
+  }
+  .gate-eyebrow{
+    font-family:var(--mono);font-size:12px;letter-spacing:.32em;text-transform:uppercase;
+    color:var(--star);margin:0 0 18px;animation:riseIn .6s .10s ease both;
+  }
+  .gate-ball{
+    display:block;margin:0 auto 20px;width:clamp(54px,12vw,74px);height:auto;
+    animation:trophyIn .85s .02s cubic-bezier(.2,.9,.3,1.3) both;
+  }
+  .gate-title{
+    font-family:var(--display);font-weight:700;text-transform:uppercase;
+    font-size:clamp(34px,8.2vw,74px);line-height:.94;letter-spacing:.005em;
+    margin:0;color:var(--text);text-wrap:balance;
+    animation:riseIn .7s .18s ease both;
+  }
+  .gate-title .gold{color:var(--gold)}
+  .gate-rule{
+    width:64px;height:2px;margin:22px auto;border:0;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);
+    animation:riseIn .6s .30s ease both;
+  }
+  .gate-sub{
+    margin:0 auto;max-width:40ch;color:var(--muted);text-wrap:balance;
+    font-size:clamp(16px,2.4vw,19px);line-height:1.55;
+    animation:riseIn .7s .36s ease both;
+  }
+  .gate-meta{
+    margin:20px 0 0;font-family:var(--mono);font-size:12.5px;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--gold);
+    animation:riseIn .7s .46s ease both;
+  }
+  #gateGo{
+    margin-top:32px;animation:riseIn .7s .58s ease both, glowPulse 2.6s 1.4s ease-in-out infinite;
+    font-family:var(--display);font-weight:600;text-transform:uppercase;letter-spacing:.16em;
+    font-size:17px;padding:15px 38px;cursor:pointer;
+    color:var(--ground-2);background:var(--gold);border:1px solid var(--gold);
+    transition:transform .15s ease,background .15s ease;
+  }
+  #gateGo:hover{background:#F2D98F;transform:translateY(-2px)}
+  #gateGo:active{transform:translateY(0)}
+  #gateGo:focus-visible{outline:2px solid var(--star);outline-offset:3px}
+  .gate-skip{
+    margin:16px 0 0;font-family:var(--mono);font-size:11.5px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--dim);animation:riseIn .7s .70s ease both;
+  }
+  @media (prefers-reduced-motion: reduce){
+    #gate,#gate *{animation:none!important}
+  }
 
   /* ---------- animation ---------- */
   @keyframes riseIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
@@ -336,216 +415,37 @@
   }
   @media (prefers-reduced-motion:reduce){ *{animation-duration:.001ms !important;transition-duration:.001ms !important} }
 </style>
-
-<style id="fifa-welcome-styles">
-  .fifa-welcome {
-    position: fixed;
-    inset: 0;
-    z-index: 99999;
-    display: grid;
-    place-items: center;
-    overflow: hidden;
-    background:
-      radial-gradient(circle at 50% 35%, rgba(255,255,255,.09), transparent 28%),
-      radial-gradient(circle at 50% 70%, rgba(255,215,80,.08), transparent 34%),
-      #07090d;
-    color: #fff;
-    opacity: 1;
-    visibility: visible;
-    transition: opacity .55s ease, visibility .55s ease;
-  }
-
-  .fifa-welcome.is-hidden {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-  }
-
-  .fifa-welcome__glow {
-    position: absolute;
-    width: min(72vw, 760px);
-    height: min(72vw, 760px);
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,215,80,.12) 0%, rgba(255,215,80,.035) 38%, transparent 70%);
-    filter: blur(8px);
-    animation: fifaPulse 3.5s ease-in-out infinite;
-  }
-
-  .fifa-welcome__card {
-    position: relative;
-    width: min(92vw, 620px);
-    padding: 46px 34px 36px;
-    text-align: center;
-    border: 1px solid rgba(255,255,255,.12);
-    border-radius: 28px;
-    background: rgba(12,15,21,.82);
-    box-shadow: 0 30px 90px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    animation: fifaCardIn .7s cubic-bezier(.2,.85,.25,1) both;
-  }
-
-  .fifa-welcome__eyebrow {
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: .2em;
-    opacity: .58;
-    margin-bottom: 16px;
-  }
-
-  .fifa-welcome__trophy {
-    font-size: 62px;
-    line-height: 1;
-    margin-bottom: 18px;
-    filter: drop-shadow(0 10px 22px rgba(255,215,80,.18));
-    animation: fifaFloat 2.8s ease-in-out infinite;
-  }
-
-  .fifa-welcome h1 {
-    margin: 0;
-    font-size: clamp(36px, 8vw, 68px);
-    line-height: .95;
-    letter-spacing: -.045em;
-    font-weight: 950;
-  }
-
-  .fifa-welcome h1 span {
-    display: inline-block;
-    margin-top: 7px;
-    background: linear-gradient(100deg, #fff 10%, #f7d76a 52%, #fff 92%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  .fifa-welcome__tagline {
-    margin: 22px auto 8px;
-    max-width: 490px;
-    font-size: clamp(15px, 3.5vw, 19px);
-    line-height: 1.45;
-    opacity: .82;
-  }
-
-  .fifa-welcome__sub {
-    margin: 0 0 28px;
-    font-size: 13px;
-    font-weight: 800;
-    letter-spacing: .03em;
-    opacity: .56;
-  }
-
-  .fifa-welcome__button {
-    border: 0;
-    border-radius: 999px;
-    padding: 15px 28px;
-    min-width: 180px;
-    color: #090b0f;
-    background: #fff;
-    font: inherit;
-    font-size: 14px;
-    font-weight: 950;
-    letter-spacing: .04em;
-    cursor: pointer;
-    box-shadow: 0 10px 30px rgba(255,255,255,.14);
-    transition: transform .18s ease, box-shadow .18s ease;
-  }
-
-  .fifa-welcome__button:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 14px 38px rgba(255,255,255,.2);
-  }
-
-  .fifa-welcome__button:active {
-    transform: scale(.98);
-  }
-
-  .fifa-welcome__hint {
-    margin-top: 18px;
-    font-size: 11px;
-    opacity: .36;
-  }
-
-  .fifa-confetti {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    overflow: hidden;
-  }
-
-  .fifa-confetti i {
-    position: absolute;
-    top: -12vh;
-    width: 7px;
-    height: 13px;
-    border-radius: 2px;
-    opacity: 0;
-    animation: fifaConfettiFall var(--d) cubic-bezier(.2,.7,.3,1) var(--delay) forwards;
-    transform: translate3d(0,0,0) rotate(0deg);
-  }
-
-  @keyframes fifaCardIn {
-    from { opacity: 0; transform: translateY(22px) scale(.96); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-  }
-
-  @keyframes fifaFloat {
-    0%,100% { transform: translateY(0) rotate(-2deg); }
-    50% { transform: translateY(-7px) rotate(2deg); }
-  }
-
-  @keyframes fifaPulse {
-    0%,100% { transform: scale(.94); opacity: .65; }
-    50% { transform: scale(1.06); opacity: 1; }
-  }
-
-  @keyframes fifaConfettiFall {
-    0% { opacity: 0; transform: translate3d(0,0,0) rotate(0deg); }
-    8% { opacity: .95; }
-    100% { opacity: 0; transform: translate3d(var(--x), 115vh, 0) rotate(var(--r)); }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .fifa-welcome__card, .fifa-welcome__glow, .fifa-welcome__trophy { animation: none; }
-    .fifa-confetti { display: none; }
-    .fifa-welcome { transition: none; }
-  }
-
-  @media (max-width: 480px) {
-    .fifa-welcome__card {
-      padding: 38px 22px 30px;
-      border-radius: 22px;
-    }
-    .fifa-welcome__trophy { font-size: 52px; }
-  }
-</style>
 </head>
 <body>
 
-<!-- FIFA CUP WELCOME -->
-<div id="fifaWelcome" class="fifa-welcome" role="dialog" aria-modal="true" aria-labelledby="fifaWelcomeTitle">
-  <div class="fifa-welcome__glow"></div>
-  <div class="fifa-confetti" aria-hidden="true"></div>
-  <div class="fifa-welcome__card">
-    <div class="fifa-welcome__eyebrow">EA FC 26 • THE TOURNAMENT</div>
-    <div class="fifa-welcome__trophy" aria-hidden="true">🏆</div>
-    <h1 id="fifaWelcomeTitle">WELCOME TO<br><span>THE FIFA CUP</span></h1>
-    <p class="fifa-welcome__tagline">The final FIFA 26 showdown before EA FC 27.</p>
-    <p class="fifa-welcome__sub">16 players. One champion. No excuses. 🇳🇬</p>
-    <button id="fifaWelcomeEnter" class="fifa-welcome__button" type="button">
-      LET’S GO <span>🔥</span>
-    </button>
-    <div class="fifa-welcome__hint">Get ready. The draw is coming.</div>
+<div id="gate">
+  <canvas id="gateStars" aria-hidden="true"></canvas>
+  <div class="gate-rings" aria-hidden="true"><i></i><i></i><i></i></div>
+  <div class="gate-inner">
+    <svg class="gate-ball" viewBox="0 0 64 64" aria-hidden="true" fill="none">
+      <circle cx="32" cy="32" r="29" stroke="#7FA6FF" stroke-width="1.6" opacity=".55"/>
+      <circle cx="32" cy="32" r="22" stroke="#E7C878" stroke-width="1.1" opacity=".35"/>
+      <path d="M32 13.5l8.6 6.3-3.3 10.1H26.7l-3.3-10.1L32 13.5z" fill="#E7C878"/>
+      <path d="M32 13.5V7M40.6 19.8l6.2-4.5M23.4 19.8l-6.2-4.5M37.3 29.9l6.3 9M26.7 29.9l-6.3 9" stroke="#7FA6FF" stroke-width="1.6" stroke-linecap="round"/>
+      <circle cx="32" cy="32" r="29" stroke="#E7C878" stroke-width="1.6" opacity=".8" stroke-dasharray="4 7"/>
+    </svg>
+    <p class="gate-eyebrow">FC 26 &middot; The final showdown</p>
+    <h1 class="gate-title">Welcome to<br>the <span class="gold">FIFA Cup</span> 🏆</h1>
+    <hr class="gate-rule">
+    <p class="gate-sub">The final FC 26 showdown before EA FC 27.</p>
+    <p class="gate-meta">16 players &middot; One champion &middot; No excuses 🇳🇬</p>
+    <button id="gateGo" type="button">Let's go 🔥</button>
+    <p class="gate-skip">Press enter or tap to continue</p>
   </div>
 </div>
-
 
 <div class="wrap">
 
   <header class="hero">
     <canvas id="stars" aria-hidden="true"></canvas>
     <p class="eyebrow">Live blind draw &middot; 16 players &middot; FC 26</p>
-    <h1>The Last Legs<br><span class="thin">Cup</span></h1>
-    <p class="tagline">Every tie has two legs. So does the game.</p>
+    <h1 id="title"></h1>
+    <p class="tagline" id="tagline"></p>
     <p class="kicker" id="kicker">One last tournament before FC 27 buries this one on 25 September. Sixteen numbers, called blind. The groups are calculated from that finished list &mdash; not picked by anyone &mdash; and this page shows you the exact working.</p>
 
     <div class="livebar" id="livebar">
@@ -631,7 +531,7 @@
   <section id="koSec" hidden>
     <div class="sec-head">
       <h2>Knockout stage</h2>
-      <span class="sec-note">Two legs &middot; aggregate &middot; higher group finish wins if level</span>
+      <span class="sec-note">Two legs &middot; aggregate &middot; higher group finish if level</span>
     </div>
     <div id="brackets"></div>
   </section>
@@ -667,7 +567,7 @@
           <div class="cal-row"><span class="when">By Sat 19</span><span class="what">Matchday 7<small>Extra day &mdash; group stage must be done</small></span></div>
           <div class="cal-row k"><span class="when">By Mon 21</span><span class="what">Quarter-finals<small>Two legs &middot; both competitions</small></span></div>
           <div class="cal-row k"><span class="when">By Tue 22</span><span class="what">Semi-finals<small>Two legs &middot; both competitions</small></span></div>
-          <div class="cal-row k"><span class="when">By Thu 24</span><span class="what">Both finals<small>The Cup and the Wooden Spoon</small></span></div>
+          <div class="cal-row k"><span class="when">By Thu 24</span><span class="what">Both finals<small>Both competitions</small></span></div>
         </div>
         <div class="backstop">Play <b>ahead</b> of these whenever you like &mdash; stack three matchdays into one evening if you're both free. The dates are the latest you can leave it, not when you have to be online.</div>
       </div>
@@ -683,7 +583,7 @@
           <li><span class="k">Missed</span><span><b>Both legs lost 3&ndash;0.</b> Past the deadline with no game played, that's the result. No appeals.</span></li>
           <li><span class="k">Connection</span><span><b>Drops in the first two minutes: replay the leg.</b> After that, the scoreline when it dropped is the scoreline. Pull the plug because you're losing and it goes down 3&ndash;0. Nobody wants to hear about your wifi.</span></li>
           <li><span class="k">Table</span><span>Points, head-to-head, head-to-head GD, overall GD, goals scored &mdash; worked out automatically.</span></li>
-          <li><span class="k">Level ties</span><span><b>Quarters and semis:</b> level on aggregate and the player who finished higher in their group goes through. <b>Both finals:</b> a third leg, golden goal. No penalty shootout or extra deciding match in the knockout rounds.</span></li>
+          <li><span class="k">Level ties</span><span><b>Level on aggregate after two legs and the player who finished higher in their group goes through.</b> Every round, final included. <b>No penalties, no third leg, no away goals.</b> Finish higher in your group and you carry that with you &mdash; that's what the group stage is for. The page works it out itself, so there's nothing to argue about.</span></li>
           <li><span class="k">Seeding</span><span>Cross-group quarters, so group winners can't meet before the final: A1&ndash;B4, A3&ndash;B2, A2&ndash;B3, A4&ndash;B1.</span></li>
           <li><span class="k">Spoon</span><span>Bottom four of each group go into the Wooden Spoon &mdash; a full eight-team knockout of its own. Still a trophy. Sort of.</span></li>
         </ul>
@@ -720,9 +620,16 @@
   // run the draws and type scores. Everyone else just watches.
   var ADMIN_KEY = "gaffer7742";
 
+  // ---- names. Change these and everything on the page follows. ----
+  var NAME_LINE1 = "The FIFA";     // big first line of the title
+  var NAME_LINE2 = "Cup";          // second line, shown lighter
+  var TAGLINE    = "Sixteen of us. One trophy. One wooden spoon.";
+  var CUP_NAME   = "The FIFA Cup";       // the main competition
+  var SPOON_NAME = "The Wooden Spoon";   // the one for everyone else
+
   // "round" = a fresh club before each knockout stage (group, QF, SF, final)
   // "once"  = one club drawn at the start and kept all tournament
-  var CLUB_MODE = "round";
+  var CLUB_MODE = "once";
 
   var DB_PATH = "lastlegs";
 
@@ -802,6 +709,69 @@
     window.addEventListener("resize", function(){ clearTimeout(t); t = setTimeout(paint, 180); });
   })();
 
+  /* ---------- opening ceremony ---------- */
+  (function(){
+    var gate = $("gate"); if (!gate) return;
+    document.body.classList.add("gate-open");
+
+    var reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    var c = $("gateStars"), raf = null;
+
+    if (c && c.getContext){
+      var gctx = c.getContext("2d"), dots = [], GW = 0, GH = 0;
+      var gdpr = Math.min(window.devicePixelRatio || 1, 2);
+      function gsize(){
+        GW = gate.clientWidth || window.innerWidth;
+        GH = gate.clientHeight || window.innerHeight;
+        c.width = GW * gdpr; c.height = GH * gdpr;
+        gctx.setTransform(gdpr,0,0,gdpr,0,0);
+      }
+      function gseed(){
+        dots = [];
+        var n = Math.max(60, Math.min(170, Math.round(GW*GH/8500)));
+        for (var i = 0; i < n; i++){
+          dots.push({
+            x: Math.random()*GW, y: Math.random()*GH,
+            r: Math.random()*1.3 + .25,
+            a: Math.random()*.5 + .10,
+            v: .05 + Math.random()*.24
+          });
+        }
+      }
+      function gframe(){
+        gctx.clearRect(0,0,GW,GH);
+        for (var i = 0; i < dots.length; i++){
+          var d = dots[i];
+          if (!reduce){ d.y -= d.v; if (d.y < -2){ d.y = GH + 2; d.x = Math.random()*GW; } }
+          gctx.beginPath(); gctx.arc(d.x, d.y, d.r, 0, Math.PI*2);
+          gctx.fillStyle = "rgba(190,215,255," + d.a.toFixed(3) + ")"; gctx.fill();
+        }
+        raf = reduce ? null : requestAnimationFrame(gframe);
+      }
+      gsize(); gseed(); gframe();
+      window.addEventListener("resize", function(){ if (!gone){ gsize(); gseed(); } });
+    }
+
+    setTimeout(function(){ confetti(5); }, 420);
+
+    var gone = false;
+    function openUp(){
+      if (gone) return;
+      gone = true;
+      if (raf) cancelAnimationFrame(raf);
+      gate.classList.add("away");
+      document.body.classList.remove("gate-open");
+      setTimeout(function(){ if (gate.parentNode) gate.parentNode.removeChild(gate); }, 640);
+    }
+    $("gateGo").addEventListener("click", openUp);
+    gate.addEventListener("click", function(e){ if (e.target === gate) openUp(); });
+    document.addEventListener("keydown", function(e){
+      if (gone) return;
+      if (e.key === "Enter" || e.key === " " || e.key === "Escape"){ e.preventDefault(); openUp(); }
+    });
+    setTimeout(function(){ try { $("gateGo").focus({ preventScroll:true }); } catch(err){} }, 520);
+  })();
+
   /* ---------- helpers ---------- */
 
   function claimTotal(){ var c = 0; for (var i = 0; i < PLAYERS; i++){ if (S.n[i]) c++; } return c; }
@@ -843,7 +813,8 @@
 
     var cols = ["#7FA6FF","#E7C878","#EDF1FC","#5BD6A4","#9BB4E8"];
     var bits = [];
-    for (var i = 0; i < 160; i++){
+    var count = Math.round(Math.max(70, Math.min(170, W / 7)));  // lighter on phones
+    for (var i = 0; i < count; i++){
       bits.push({
         x: Math.random()*W,
         y: -20 - Math.random()*H*0.6,
@@ -1081,17 +1052,6 @@
   }
   function ordinal(n){ return n===1?"1st":n===2?"2nd":n===3?"3rd":n+"th"; }
 
-  function groupRank(name){
-    if (!groupsComplete() || !name) return 999;
-    var gs = stand();
-    for (var g of ["A","B"]){
-      for (var i = 0; i < gs[g].length; i++){
-        if (gs[g][i].name === name) return i + 1;
-      }
-    }
-    return 999;
-  }
-
   function resolveRef(ref, comp){
     if (ref.g){
       var lbl = "Group " + ref.g + " · " + ordinal(ref.pos+1);
@@ -1102,23 +1062,49 @@
     return { name: tieState(comp, ref.win).winner, label:"Winner " + d.id };
   }
 
+  // Where a player finished in their group. This is the only thing that
+  // separates a knockout tie that ends level on aggregate - no pens, no
+  // third leg, no away goals.
+  function groupFinish(name){
+    if (!result || !groupsComplete()) return null;
+    var s = stand(), letters = ["A","B"];
+    for (var g = 0; g < letters.length; g++){
+      var rows = s[letters[g]];
+      for (var i = 0; i < rows.length; i++){
+        if (rows[i].name === name){
+          return { g:letters[g], pos:i, pts:rows[i].pts, gd:rows[i].gd, gf:rows[i].gf };
+        }
+      }
+    }
+    return null;
+  }
+  function higherFinisher(nameA, nameB){
+    var a = groupFinish(nameA), b = groupFinish(nameB);
+    if (!a || !b) return null;
+    if (a.pos !== b.pos) return a.pos < b.pos ? nameA : nameB;   // 1st beats 2nd, etc.
+    if (a.pts !== b.pts) return a.pts > b.pts ? nameA : nameB;   // same slot, other group
+    if (a.gd  !== b.gd)  return a.gd  > b.gd  ? nameA : nameB;
+    if (a.gf  !== b.gf)  return a.gf  > b.gf  ? nameA : nameB;
+    return nameA.localeCompare(nameB) <= 0 ? nameA : nameB;      // last resort, never used in practice
+  }
+  function finishLabel(name){
+    var f = groupFinish(name);
+    return f ? ("Group " + f.g + " " + ordinal(f.pos + 1)) : "";
+  }
+
   function tieState(comp, idx){
     var cd = compData(comp), d = cd.def[idx];
     var A = resolveRef(d.a, comp), B = resolveRef(d.b, comp);
     var l1 = legScore(cd.sc[idx*2]), l2 = legScore(cd.sc[idx*2+1]);
-    var pens = legScore(cd.pen[idx]);
-    var st = { def:d, a:A, b:B, l1:l1, l2:l2, pens:pens, aggA:null, aggB:null, winner:null };
+    var st = { def:d, a:A, b:B, l1:l1, l2:l2, aggA:null, aggB:null, winner:null, onFinish:false };
     if (!A.name || !B.name) return st;
     if (l1 && l2){
       st.aggA = l1[0] + l2[0]; st.aggB = l1[1] + l2[1];
       if (st.aggA > st.aggB) st.winner = A.name;
       else if (st.aggB > st.aggA) st.winner = B.name;
-      else if (d.round < 2) {
-        // Quarters and semis: level on aggregate goes to the player who
-        // finished higher in the group stage. Lower rank number = higher finish.
-        var rankA = groupRank(A.name), rankB = groupRank(B.name);
-        if (rankA < rankB) st.winner = A.name;
-        else if (rankB < rankA) st.winner = B.name;
+      else {
+        var hi = higherFinisher(A.name, B.name);
+        if (hi){ st.winner = hi; st.onFinish = true; }
       }
     }
     return st;
@@ -1335,7 +1321,7 @@
     });
     t.appendChild(tb); wrapT.appendChild(t); d.appendChild(wrapT);
     var key = document.createElement("p"); key.className = "qkey";
-    key.innerHTML = '<b>Top 4</b> — Last Legs Cup · bottom 4 — Wooden Spoon';
+    key.innerHTML = "<b>Top 4</b> — " + CUP_NAME + " · bottom 4 — " + SPOON_NAME;
     d.appendChild(key);
     return d;
   }
@@ -1725,7 +1711,6 @@
       legs.appendChild(legBlock("L1", { key:comp+"k", data:cd.sc }, idx*2, !ready));
       legs.appendChild(legBlock("L2", { key:comp+"k", data:cd.sc }, idx*2+1, !ready));
       card.appendChild(legs);
-
     } else if (st.l1 && st.l2){
       var sl = document.createElement("div"); sl.className = "scoreline";
       sl.textContent = st.l1[0] + "–" + st.l1[1] + "   ·   " + st.l2[0] + "–" + st.l2[1];
@@ -1734,13 +1719,15 @@
 
     if (st.winner){
       var note = document.createElement("div"); note.className = "ko-note";
-      note.innerHTML = (st.aggA === st.aggB) ? 'Through on group finish: <b></b>' : 'Through on aggregate: <b></b>';
+      if (st.onFinish){
+        var fl = finishLabel(st.winner);
+        note.innerHTML = 'Level on aggregate &mdash; through on group finish: <b></b>' +
+                         (fl ? ' <span style="color:var(--dim)">(' + fl + ')</span>' : '');
+      } else {
+        note.innerHTML = 'Through on aggregate: <b></b>';
+      }
       note.querySelector("b").textContent = st.winner;
       card.appendChild(note);
-    } else if (ready && st.l1 && st.l2 && st.aggA === st.aggB){
-      var lvl = document.createElement("div"); lvl.className = "ko-note";
-      lvl.textContent = "Level on aggregate - higher group finish advances";
-      card.appendChild(lvl);
     }
     return card;
   }
@@ -1770,7 +1757,7 @@
     var champ = tieState(comp, cd.def.length - 1).winner;
     if (champ){
       var w = document.createElement("div"); w.className = "winner";
-      w.innerHTML = '<div class="lbl">' + (comp === "cup" ? "Last Legs Cup winner" : "Wooden Spoon winner") + '</div><div class="nm"></div>';
+      w.innerHTML = '<div class="lbl">' + (comp === "cup" ? CUP_NAME + " winner" : SPOON_NAME + " winner") + '</div><div class="nm"></div>';
       w.querySelector(".nm").textContent = champ;
       wrapC.appendChild(w);
       if (celebrated[comp] !== champ){ celebrated[comp] = champ; setTimeout(function(){ confetti(6); }, 250); }
@@ -1784,8 +1771,8 @@
     sec.hidden = false;
     var host = $("brackets"); host.innerHTML = "";
     var done = groupsComplete();
-    host.appendChild(compBlock("cup","The Last Legs Cup", done ? "Top 4 from each group" : "Fills in when the group stage finishes"));
-    host.appendChild(compBlock("spoon","The Wooden Spoon", done ? "Bottom 4 from each group" : "Fills in when the group stage finishes"));
+    host.appendChild(compBlock("cup", CUP_NAME, done ? "Top 4 from each group" : "Fills in when the group stage finishes"));
+    host.appendChild(compBlock("spoon", SPOON_NAME, done ? "Bottom 4 from each group" : "Fills in when the group stage finishes"));
   }
 
   /* ---------- verify + status ---------- */
@@ -1822,6 +1809,23 @@
   }
 
   var lastClaimCount = -1;
+  function renderNames(){
+    var t = $("title");
+    if (t) t.innerHTML = "";
+    if (t){
+      t.appendChild(document.createTextNode(NAME_LINE1));
+      if (NAME_LINE2){
+        t.appendChild(document.createElement("br"));
+        var sp = document.createElement("span");
+        sp.className = "thin"; sp.textContent = NAME_LINE2;
+        t.appendChild(sp);
+      }
+    }
+    var tg = $("tagline");
+    if (tg) tg.textContent = TAGLINE;
+    try { document.title = (NAME_LINE1 + " " + NAME_LINE2).trim(); } catch(e){}
+  }
+
   function renderClubRule(){
     var el = $("clubRule");
     if (!el) return;
@@ -1889,7 +1893,7 @@
     if (S.lk && claimTotal() === PLAYERS){
       result = computeDraw(); buildTies();
     } else { result = null; ties = []; }
-    renderClubRule();
+    renderNames(); renderClubRule();
     renderLive(); renderStatus(); renderGrid(); renderClaimBox();
     renderResult(); renderLadder(); renderTeams(); renderFixtures(); renderKO(); renderVerify();
     firstPaint = false;
@@ -1964,61 +1968,6 @@
   }
 
   renderAll();
-})();
-</script>
-
-<script id="fifa-welcome-script">
-(function () {
-  const overlay = document.getElementById('fifaWelcome');
-  const enter = document.getElementById('fifaWelcomeEnter');
-  const confetti = document.querySelector('.fifa-confetti');
-  if (!overlay || !enter) return;
-
-  const SESSION_KEY = 'fifaCupWelcomeSeen';
-
-  function makeConfetti() {
-    if (!confetti || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const frag = document.createDocumentFragment();
-    const pieces = 44;
-    for (let i = 0; i < pieces; i++) {
-      const piece = document.createElement('i');
-      piece.style.left = (Math.random() * 100) + '%';
-      piece.style.setProperty('--x', ((Math.random() - 0.5) * 260) + 'px');
-      piece.style.setProperty('--r', ((Math.random() - 0.5) * 900) + 'deg');
-      piece.style.setProperty('--d', (2.4 + Math.random() * 2.4) + 's');
-      piece.style.setProperty('--delay', (Math.random() * .55) + 's');
-      piece.style.width = (5 + Math.random() * 5) + 'px';
-      piece.style.height = (8 + Math.random() * 9) + 'px';
-      piece.style.background = ['#ffffff','#f7d76a','#d9d9d9','#8fd3ff','#b9f2c0'][i % 5];
-      frag.appendChild(piece);
-    }
-    confetti.appendChild(frag);
-  }
-
-  function closeWelcome() {
-    try { sessionStorage.setItem(SESSION_KEY, '1'); } catch (_) {}
-    overlay.classList.add('is-hidden');
-    setTimeout(function () {
-      overlay.remove();
-    }, 650);
-  }
-
-  let seen = false;
-  try { seen = sessionStorage.getItem(SESSION_KEY) === '1'; } catch (_) {}
-
-  if (seen) {
-    overlay.remove();
-    return;
-  }
-
-  makeConfetti();
-  enter.addEventListener('click', closeWelcome);
-  overlay.addEventListener('click', function (e) {
-    if (e.target === overlay) closeWelcome();
-  });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' || e.key === 'Enter') closeWelcome();
-  });
 })();
 </script>
 </body>
