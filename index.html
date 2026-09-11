@@ -652,20 +652,18 @@
     [[7,8],[1,6],[2,5],[3,4]]
   ];
 
+  // The 32 clubs the group named. 16 get dealt, one each.
   var DEFAULT_POOL = [
-    "Bournemouth","Brighton","Crystal Palace","West Ham","Brentford",
-    "Fulham","Everton","Leeds United","Wolves",
-    "AS Monaco","Marseille","LOSC Lille","OGC Nice","Lyon","Stade Rennais",
-    "Eintracht Frankfurt","VfB Stuttgart","VfL Wolfsburg","Borussia Monchengladbach",
-    "SC Freiburg","Hoffenheim","Augsburg","Mainz 05","Werder Bremen",
-    "Bologna","Fiorentina","Torino","Como",
-    "Real Betis","Real Sociedad","Villarreal","Girona","Mallorca",
-    "Rayo Vallecano","Celta Vigo","Getafe","Osasuna","Sevilla","Valencia",
-    "Benfica","FC Porto","Sporting Braga",
-    "PSV","Ajax","Feyenoord",
-    "Fenerbahce","Besiktas","Celtic",
-    "Al Hilal","Al Nassr","Al Ittihad",
-    "River Plate","Boca Juniors"
+    "Bournemouth","Brentford","Brighton","Burnley","Everton","Fulham",
+    "Leeds United","Sunderland","West Ham","Wolves",
+    "AS Monaco","Lyon","LOSC Lille","OGC Nice","Paris FC","RC Strasbourg","Stade Rennais",
+    "Eintracht Frankfurt","VfB Stuttgart",
+    "Como","Lazio",
+    "Girona","Real Sociedad","Sevilla",
+    "Benfica","Sporting Braga",
+    "Ajax","Feyenoord","PSV",
+    "Fenerbahce",
+    "Al Hilal","Al Nassr"
   ];
 
   function blank(n){ var a = []; for (var i = 0; i < n; i++) a.push(""); return a; }
@@ -1444,9 +1442,9 @@
       var h = document.createElement("h3"); h.textContent = "The pot";
       var p = document.createElement("p");
       p.textContent = isAdmin
-        ? "Every club rated 4 stars in FC 26. Cut any you don't fancy before drawing - pulling the Saudi sides, Benfica, Porto and Marseille tightens the spread a lot."
+        ? "The 32 clubs the group named. 16 get dealt, one each, and the other 16 sit it out. Cut any before drawing if the group wants the spread tighter - Al Hilal, Al Nassr, Benfica and Lazio are the strongest in here."
         : (CLUB_MODE === "once"
-            ? "Clubs get pulled at random from the 4-star pot. Nobody picks their own, and you keep what you get all tournament."
+            ? "You all named the clubs. The page deals them out - nobody picks their own, and you keep what you get all tournament."
             : "Clubs get pulled at random from the 4-star pot. Nobody picks their own, and everyone is dealt a fresh hand before each knockout round.");
       panel.appendChild(h); panel.appendChild(p);
 
@@ -1830,7 +1828,7 @@
     var el = $("clubRule");
     if (!el) return;
     el.innerHTML = (CLUB_MODE === "once")
-      ? "<b>Drawn, not picked.</b> Every side in the pot is rated 4 stars. You get what you get and you keep it all tournament &mdash; no swaps, no rematches because you don't fancy yours."
+      ? "<b>You named them, the page deals them.</b> Everyone put a 4-star club in the pot &mdash; 32 in, 16 dealt out, one each. Naming a club doesn't get you that club. You get what you get and you keep it all tournament: no swaps, no rematches because you don't fancy yours."
       : "<b>Drawn, not picked &mdash; and redrawn every round.</b> One club for the whole group stage, then a fresh 4-star club before the quarters, again before the semis, and again before the finals. Nobody chooses, nobody swaps, and nobody is stuck with a duffer for a fortnight.";
   }
 
