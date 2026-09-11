@@ -546,7 +546,6 @@
       <p>The groups aren't stored anywhere. They're calculated from the line below &mdash; just who called which number &mdash; run through a fixed formula. Change one entry and every group changes. Anyone opening this page runs the same calculation and gets the same answer, so if this list matches what happened in the chat, the draw is straight.</p>
       <code id="verifyInput"></code>
       <p class="seedline">Draw seed <b id="verifySeed"></b> &middot; derived from the line above</p>
-      <p id="redrawNote" hidden style="margin-top:10px;color:var(--muted)"></p>
     </div>
   </section>
 
@@ -595,7 +594,6 @@
   <footer>
     <span id="footState">Draw sealed</span>
     <span id="seedTag"></span>
-    <button class="btn ghost" id="reshuffleBtn" hidden>Shuffle again</button>
     <button class="btn ghost" id="resetBtn" hidden>Start over</button>
   </footer>
 </div>
@@ -888,7 +886,7 @@
   // The redraw number goes into the seed, so the same 16 numbers can be
   // reshuffled into different groups without anyone picking anything.
   function drawInput(){
-    return (S.rd ? ("redraw" + S.rd + "|") : "") + claimString();
+    return (S.rd ? ("draw" + S.rd + "|") : "") + claimString();
   }
   function computeDraw(){
     var seed = hashSeed(drawInput());
@@ -1213,30 +1211,6 @@
     push().then(function(){ busy = false; renderAll(); });
   };
 
-  // Reshuffle: keeps everyone's numbers, throws the groups and the clubs back
-  // in the hat. The redraw number goes into the seed and is shown on the page,
-  // so it stays as checkable as the first draw was.
-  $("reshuffleBtn").onclick = function(){
-    var b = $("reshuffleBtn");
-    if (b.dataset.armed !== "1"){
-      b.dataset.armed = "1"; b.textContent = "Tap again to reshuffle";
-      setTimeout(function(){ b.dataset.armed = "0"; b.textContent = "Shuffle again"; }, 4000);
-      return;
-    }
-    b.dataset.armed = "0"; b.textContent = "Shuffle again";
-    S.rd = (S.rd || 0) + 1;
-    S.drawnAt = Date.now();
-    S.cd = { g:0, qf:0, sf:0, f:0 };
-    S.tp = DEFAULT_POOL.slice();      // reloads the club list from this file
-    S.r = blank(TOTAL_LEGS);
-    S.cup = blank(KO_LEGS); S.spoon = blank(KO_LEGS);
-    S.cupPens = blank(KO_TIES); S.spoonPens = blank(KO_TIES);
-    standCache = null; teamCache = {};
-    seenDrawnAt = 0; seenClubDraw = { g:0, qf:0, sf:0, f:0 };
-    busy = true; renderAll();
-    push().then(function(){ busy = false; renderAll(); });
-  };
-
   $("resetBtn").onclick = function(){
     var b = $("resetBtn");
     if (b.dataset.armed !== "1"){
@@ -1245,7 +1219,10 @@
       return;
     }
     b.dataset.armed = "0"; b.textContent = "Start over";
-    S.n = blank(PLAYERS); S.lk = false; S.drawnAt = 0; S.rd = 0;
+    // Bump the draw number rather than clearing it. That way the same sixteen
+    // numbers can be keyed straight back in and still fall into fresh groups.
+    S.n = blank(PLAYERS); S.lk = false; S.drawnAt = 0;
+    S.rd = (S.rd || 0) + 1;
     S.cd = { g:0, qf:0, sf:0, f:0 }; S.tp = DEFAULT_POOL.slice();
     S.r = blank(TOTAL_LEGS);
     S.cup = blank(KO_LEGS); S.spoon = blank(KO_LEGS);
@@ -1814,16 +1791,9 @@
     sec.hidden = false;
     var lines = [];
     for (var n = 1; n <= PLAYERS; n++) lines.push(n + " → " + nameOf(n));
-    if (S.rd) lines.push("redraw " + S.rd);
+    if (S.rd) lines.push("draw " + S.rd);
     $("verifyInput").textContent = lines.join("   ·   ");
     $("verifySeed").textContent = result.seed.toString(16).toUpperCase();
-    var rn = $("redrawNote");
-    if (rn){
-      rn.hidden = !S.rd;
-      rn.textContent = S.rd
-        ? ("This is reshuffle number " + S.rd + ". The same 16 numbers were thrown back in the hat, so the groups moved. The redraw number is part of the line above and part of the seed — nobody chose where anyone landed.")
-        : "";
-    }
   }
 
   function renderLive(){
@@ -1893,7 +1863,6 @@
     $("seedTag").textContent = result ? ("Draw seed " + result.seed.toString(16).toUpperCase()) : "";
     $("tableTitle").textContent = (result && pl) ? "Groups & table" : "The draw";
     $("resetBtn").hidden = !isAdmin;
-    $("reshuffleBtn").hidden = !isAdmin || !S.lk;
 
     var btn = $("lockBtn");
     if (S.lk){
