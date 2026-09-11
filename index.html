@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Last Legs Cup</title>
-<meta name="description" content="The Last Legs Cup — 16 player FC 26 tournament. Live blind draw, groups, fixtures and knockouts.">
+<title>FIFA Cup</title>
+<meta name="description" content="16 player FC 26 tournament. Live blind draw, groups, fixtures and knockouts.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -277,6 +277,13 @@
   .pool-foot{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
   .pool-count{font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
   .pool-count.bad{color:var(--live)}
+  .roundhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:26px 0 12px}
+  .roundhead:first-child{margin-top:0}
+  .rlabel{font-family:var(--display);text-transform:uppercase;font-size:19px;font-weight:600;letter-spacing:.1em;color:var(--gold)}
+  .rnote{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .rwait{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:0 0 18px}
+  .ko-side .nm .koclub{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--star);font-weight:400;margin-top:2px}
+  .ko-side .nm{white-space:normal}
   .teamlist{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
   .tcard{display:grid;grid-template-columns:auto 1fr;gap:11px;align-items:center;padding:11px 13px;background:var(--surface);border:1px solid var(--line)}
   .tcard .badge{border-color:var(--gold-dim);color:var(--gold)}
@@ -337,8 +344,8 @@
   <header class="hero">
     <canvas id="stars" aria-hidden="true"></canvas>
     <p class="eyebrow">Live blind draw &middot; 16 players &middot; FC 26</p>
-    <h1>The Last Legs<br><span class="thin">Cup</span></h1>
-    <p class="tagline">Every tie has two legs. So does the game.</p>
+    <h1 id="title"></h1>
+    <p class="tagline" id="tagline"></p>
     <p class="kicker" id="kicker">One last tournament before FC 27 buries this one on 25 September. Sixteen numbers, called blind. The groups are calculated from that finished list &mdash; not picked by anyone &mdash; and this page shows you the exact working.</p>
 
     <div class="livebar" id="livebar">
@@ -460,22 +467,23 @@
           <div class="cal-row"><span class="when">By Sat 19</span><span class="what">Matchday 7<small>Extra day &mdash; group stage must be done</small></span></div>
           <div class="cal-row k"><span class="when">By Mon 21</span><span class="what">Quarter-finals<small>Two legs &middot; both competitions</small></span></div>
           <div class="cal-row k"><span class="when">By Tue 22</span><span class="what">Semi-finals<small>Two legs &middot; both competitions</small></span></div>
-          <div class="cal-row k"><span class="when">By Thu 24</span><span class="what">Both finals<small>The Cup and the Wooden Spoon</small></span></div>
+          <div class="cal-row k"><span class="when">By Thu 24</span><span class="what">Both finals<small>Both competitions</small></span></div>
         </div>
         <div class="backstop">Play <b>ahead</b> of these whenever you like &mdash; stack three matchdays into one evening if you're both free. The dates are the latest you can leave it, not when you have to be online.</div>
       </div>
       <div class="panel">
         <h3>The rules</h3>
         <ul class="rules">
-          <li><span class="k">Clubs</span><span><b>Drawn, not picked.</b> Every side in the pot is rated 4 stars. You get what you get and you keep it all tournament &mdash; no swaps.</span></li>
+          <li><span class="k">Clubs</span><span id="clubRule"></span></li>
           <li><span class="k">Groups</span><span><b>Two groups of eight.</b> Home and away, so 14 games each. Nobody gets a bye and both groups play the same number of games.</span></li>
-          <li><span class="k">Format</span><span><b>Both legs in one sitting.</b> First leg at your place, second at theirs, back to back. Both count separately in the table.</span></li>
+          <li><span class="k">Format</span><span><b>Both legs back to back, one sitting.</b> It's all online &mdash; nobody's going anywhere. "Home and away" just means who hosts the lobby: first name listed hosts leg one, the other hosts leg two. Both results count separately in the table.</span></li>
           <li><span class="k">Halves</span><span><b>6 minutes.</b> A double-header runs about 25 minutes with menus.</span></li>
           <li><span class="k">Timing</span><span>You and your opponent agree when. Just don't blow the matchday deadline.</span></li>
-          <li><span class="k">Home</span><span>Home player picks the stadium and wears the home kit.</span></li>
+          <li><span class="k">Hosting</span><span>Whoever hosts picks the stadium and wears the home kit. That's the only thing home advantage means here.</span></li>
           <li><span class="k">Missed</span><span><b>Both legs lost 3&ndash;0.</b> Past the deadline with no game played, that's the result. No appeals.</span></li>
+          <li><span class="k">Connection</span><span><b>Drops in the first two minutes: replay the leg.</b> After that, the scoreline when it dropped is the scoreline. Pull the plug because you're losing and it goes down 3&ndash;0. Nobody wants to hear about your wifi.</span></li>
           <li><span class="k">Table</span><span>Points, head-to-head, head-to-head GD, overall GD, goals scored &mdash; worked out automatically.</span></li>
-          <li><span class="k">Knockout</span><span><b>Aggregate over two legs.</b> No away goals. Level after both legs goes straight to penalties.</span></li>
+          <li><span class="k">Level ties</span><span><b>Quarters and semis:</b> level on aggregate and the player who finished higher in their group goes through. <b>Both finals:</b> a third leg, golden goal. A normal online friendly won't take you to pens, so nothing here depends on it.</span></li>
           <li><span class="k">Seeding</span><span>Cross-group quarters, so group winners can't meet before the final: A1&ndash;B4, A3&ndash;B2, A2&ndash;B3, A4&ndash;B1.</span></li>
           <li><span class="k">Spoon</span><span>Bottom four of each group go into the Wooden Spoon &mdash; a full eight-team knockout of its own. Still a trophy. Sort of.</span></li>
         </ul>
@@ -511,6 +519,17 @@
   // Anyone opening the page with #gaffer7742 on the end can key numbers in,
   // run the draws and type scores. Everyone else just watches.
   var ADMIN_KEY = "gaffer7742";
+
+  // ---- names. Change these and everything on the page follows. ----
+  var NAME_LINE1 = "The FIFA";     // big first line of the title
+  var NAME_LINE2 = "Cup";          // second line, shown lighter
+  var TAGLINE    = "Sixteen of us. One trophy. One wooden spoon.";
+  var CUP_NAME   = "The FIFA Cup";       // the main competition
+  var SPOON_NAME = "The Wooden Spoon";   // the one for everyone else
+
+  // "round" = a fresh club before each knockout stage (group, QF, SF, final)
+  // "once"  = one club drawn at the start and kept all tournament
+  var CLUB_MODE = "once";
 
   var DB_PATH = "lastlegs";
 
@@ -554,7 +573,7 @@
   var S = {
     n: blank(PLAYERS),
     lk: false, drawnAt: 0,
-    tp: DEFAULT_POOL.slice(), td: false, teamsAt: 0,
+    tp: DEFAULT_POOL.slice(), cd: { g:0, qf:0, sf:0, f:0 },
     r: blank(TOTAL_LEGS),
     cup: blank(KO_LEGS), spoon: blank(KO_LEGS),
     cupPens: blank(KO_TIES), spoonPens: blank(KO_TIES)
@@ -562,8 +581,8 @@
 
   var dbRef = null, connected = false, isAdmin = false, busy = false;
   var freshTile = 0, selectedTile = null, filter = null, statusFilter = "all";
-  var result = null, ties = [], standCache = null, teamCache = null;
-  var seenDrawnAt = 0, seenTeamsAt = 0, firstPaint = true;
+  var result = null, ties = [], standCache = null, teamCache = {};
+  var seenDrawnAt = 0, seenClubDraw = { g:0, qf:0, sf:0, f:0 }, firstPaint = true;
 
   var $ = function(id){ return document.getElementById(id); };
 
@@ -707,14 +726,67 @@
     var s = shuffled(nums, seed);
     return { groupA:s.slice(0,PER_GROUP), groupB:s.slice(PER_GROUP), seed:seed };
   }
-  function teamAssign(){
-    if (!S.td || S.tp.length < PLAYERS) return null;
-    if (teamCache) return teamCache;
-    var seed = hashSeed("clubs|" + claimString() + "|" + S.tp.join(","));
-    teamCache = { list: shuffled(S.tp, seed).slice(0,PLAYERS), seed: seed };
-    return teamCache;
+  var ROUND_KEYS = ["g","qf","sf","f"];
+  var ROUND_LABEL = { g:"Group stage", qf:"Quarter-finals", sf:"Semi-finals", f:"Finals" };
+
+  function numOf(name){
+    for (var i = 0; i < PLAYERS; i++){ if (S.n[i] === name) return i+1; }
+    return 0;
   }
-  function teamOf(num){ var ta = teamAssign(); return ta ? ta.list[num-1] : null; }
+
+  // Who still needs a club at each stage. Nobody is out until the quarters are
+  // done, because group-stage losers drop into the Spoon rather than go home.
+  function roundParticipants(rk){
+    var out = [], i;
+    if (rk === "g"){ for (i = 1; i <= PLAYERS; i++) out.push(i); return out; }
+    if (!result) return null;
+
+    if (rk === "qf"){
+      if (!groupsComplete()) return null;
+      var st = stand();
+      st.A.forEach(function(r){ out.push(r.num); });
+      st.B.forEach(function(r){ out.push(r.num); });
+      return out.sort(function(a,b){ return a-b; });
+    }
+
+    var from = (rk === "sf") ? [0,1,2,3] : [4,5];
+    var ok = true;
+    ["cup","spoon"].forEach(function(comp){
+      from.forEach(function(idx){
+        var w = tieState(comp, idx).winner;
+        if (!w){ ok = false; return; }
+        var n = numOf(w);
+        if (n) out.push(n); else ok = false;
+      });
+    });
+    if (!ok) return null;
+    return out.sort(function(a,b){ return a-b; });
+  }
+
+  function clubsForRound(rk){
+    if (!S.cd || !S.cd[rk]) return null;
+    if (S.tp.length < PLAYERS) return null;
+    if (teamCache[rk]) return teamCache[rk];
+    var ps = roundParticipants(rk);
+    if (!ps || !ps.length) return null;
+    var seed = hashSeed("clubs|" + rk + "|" + claimString() + "|" + S.tp.join(","));
+    var pool = shuffled(S.tp, seed);
+    var map = {};
+    ps.forEach(function(n, i){ map[n] = pool[i % pool.length]; });
+    teamCache[rk] = map;
+    return map;
+  }
+
+  function clubOf(num, rk){
+    var m = clubsForRound(rk || "g");
+    return m ? (m[num] || null) : null;
+  }
+
+  function koRoundKey(roundIdx){
+    if (CLUB_MODE === "once") return "g";
+    return roundIdx === 0 ? "qf" : roundIdx === 1 ? "sf" : "f";
+  }
+  function activeRounds(){ return CLUB_MODE === "once" ? ["g"] : ROUND_KEYS; }
 
   function buildTies(){
     ties = []; var idx = 0;
@@ -868,7 +940,9 @@
     }
     S.n = arr(v.n, PLAYERS);
     S.lk = !!v.lk; S.drawnAt = v.drawnAt || 0;
-    S.td = !!v.td; S.teamsAt = v.teamsAt || 0;
+    var cd = v.cd || {};
+    S.cd = { g:cd.g||0, qf:cd.qf||0, sf:cd.sf||0, f:cd.f||0 };
+    if (!S.cd.g && v.td) S.cd.g = v.teamsAt || 1;
     var pool = Array.isArray(v.tp) ? v.tp.filter(function(x){ return typeof x === "string" && x.trim(); }) : [];
     S.tp = pool.length ? pool : DEFAULT_POOL.slice();
     S.r = arr(v.r, TOTAL_LEGS);
@@ -948,12 +1022,12 @@
     }
     b.dataset.armed = "0"; b.textContent = "Start over";
     S.n = blank(PLAYERS); S.lk = false; S.drawnAt = 0;
-    S.td = false; S.teamsAt = 0; S.tp = DEFAULT_POOL.slice();
+    S.cd = { g:0, qf:0, sf:0, f:0 }; S.tp = DEFAULT_POOL.slice();
     S.r = blank(TOTAL_LEGS);
     S.cup = blank(KO_LEGS); S.spoon = blank(KO_LEGS);
     S.cupPens = blank(KO_TIES); S.spoonPens = blank(KO_TIES);
-    result = null; ties = []; standCache = null; teamCache = null;
-    seenDrawnAt = 0; seenTeamsAt = 0;
+    result = null; ties = []; standCache = null; teamCache = {};
+    seenDrawnAt = 0; seenClubDraw = { g:0, qf:0, sf:0, f:0 };
     push().then(renderAll);
   };
 
@@ -1036,7 +1110,7 @@
         '<td class="formcell opt"></td>';
       var pcell = tr.querySelector(".player");
       pcell.textContent = r.name;
-      var club = teamOf(r.num);
+      var club = clubOf(r.num, "g");
       if (club){
         var cs = document.createElement("span"); cs.className = "club"; cs.textContent = club;
         pcell.appendChild(cs);
@@ -1054,7 +1128,7 @@
     });
     t.appendChild(tb); wrapT.appendChild(t); d.appendChild(wrapT);
     var key = document.createElement("p"); key.className = "qkey";
-    key.innerHTML = '<b>Top 4</b> — Last Legs Cup · bottom 4 — Wooden Spoon';
+    key.innerHTML = "<b>Top 4</b> — " + CUP_NAME + " · bottom 4 — " + SPOON_NAME;
     d.appendChild(key);
     return d;
   }
@@ -1143,7 +1217,7 @@
         '<td class="formcell opt"></td>';
       var pcell = tr.querySelector(".player");
       pcell.textContent = r.name;
-      var club = teamOf(r.num);
+      var club = clubOf(r.num, "g");
       if (club){
         var cs = document.createElement("span"); cs.className = "club"; cs.textContent = club;
         pcell.appendChild(cs);
@@ -1170,14 +1244,17 @@
     sec.hidden = false;
     var box = $("teamBody"); box.innerHTML = "";
 
-    if (!S.td){
+    // The pot only gets edited once, before the very first draw.
+    if (!S.cd.g){
       $("teamNote").textContent = isAdmin ? "Trim the pot, then draw" : "Coming up next";
       var panel = document.createElement("div"); panel.className = "pool";
       var h = document.createElement("h3"); h.textContent = "The pot";
       var p = document.createElement("p");
       p.textContent = isAdmin
-        ? "Every club rated 4 stars in FC 26. Cut any you don't fancy before drawing - pulling the Saudi sides, Benfica, Porto and Marseille tightens the spread a lot. Once it runs, that's your club for the tournament."
-        : "Sixteen clubs get pulled at random from the 4-star pot. Nobody picks their own.";
+        ? "Every club rated 4 stars in FC 26. Cut any you don't fancy before drawing - pulling the Saudi sides, Benfica, Porto and Marseille tightens the spread a lot."
+        : (CLUB_MODE === "once"
+            ? "Clubs get pulled at random from the 4-star pot. Nobody picks their own, and you keep what you get all tournament."
+            : "Clubs get pulled at random from the 4-star pot. Nobody picks their own, and everyone is dealt a fresh hand before each knockout round.");
       panel.appendChild(h); panel.appendChild(p);
 
       if (isAdmin){
@@ -1191,10 +1268,11 @@
         var foot = document.createElement("div"); foot.className = "pool-foot";
         var cnt = document.createElement("span"); cnt.className = "pool-count";
         var drawBtn = document.createElement("button");
-        drawBtn.type = "button"; drawBtn.className = "btn go"; drawBtn.textContent = "Draw the clubs";
+        drawBtn.type = "button"; drawBtn.className = "btn go";
+        drawBtn.textContent = (CLUB_MODE === "once") ? "Draw the clubs" : "Draw the group-stage clubs";
 
         var refresh = function(){
-          var lines = ta.value.split("\n").map(function(s){ return s.trim(); }).filter(Boolean);
+          var lines = ta.value.split("\n").map(function(x){ return x.trim(); }).filter(Boolean);
           cnt.textContent = lines.length < PLAYERS
             ? lines.length + " clubs - need at least 16"
             : lines.length + " clubs in the pot";
@@ -1206,8 +1284,8 @@
         drawBtn.onclick = function(){
           var lines = refresh();
           if (lines.length < PLAYERS || busy) return;
-          S.tp = lines; S.td = true; S.teamsAt = Date.now();
-          teamCache = null; busy = true; renderAll();
+          S.tp = lines; S.cd.g = Date.now();
+          teamCache = {}; busy = true; renderAll();
           push().then(function(){ busy = false; renderAll(); });
         };
         var restore = document.createElement("button");
@@ -1216,39 +1294,89 @@
 
         foot.appendChild(drawBtn); foot.appendChild(restore); foot.appendChild(cnt);
         panel.appendChild(foot);
-        box.appendChild(panel);
-        refresh();
-      } else {
-        box.appendChild(panel);
       }
+      box.appendChild(panel);
+      if (isAdmin) refresh();
       return;
     }
 
-    $("teamNote").textContent = "Drawn from " + S.tp.length + " clubs";
-    var list = document.createElement("div"); list.className = "teamlist";
-    for (var n = 1; n <= PLAYERS; n++){
-      var card = document.createElement("div"); card.className = "tcard hidden";
-      card.innerHTML = '<span class="badge">' + n + '</span><span class="who"><span class="club"></span></span>';
-      card.querySelector(".who").insertBefore(document.createTextNode(nameOf(n)), card.querySelector(".club"));
-      card.querySelector(".club").textContent = teamOf(n) || "—";
-      list.appendChild(card);
-    }
-    box.appendChild(list);
+    var rounds = activeRounds();
+    var drawnCount = 0;
+    rounds.forEach(function(rk){ if (S.cd[rk]) drawnCount++; });
+    $("teamNote").textContent = (CLUB_MODE === "once")
+      ? "One club, kept all tournament"
+      : "Fresh hand every round · " + drawnCount + " of 4 drawn";
 
-    var cards = list.querySelectorAll(".tcard");
-    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    var animate = (S.teamsAt && S.teamsAt !== seenTeamsAt && !firstPaint && !reduce);
-    seenTeamsAt = S.teamsAt;
-    if (!animate){
-      for (var i = 0; i < cards.length; i++) cards[i].className = "tcard show";
-      return;
-    }
-    var idx = 0;
-    (function step(){
-      if (idx >= cards.length){ confetti(4); return; }
-      cards[idx].className = "tcard show";
-      idx++; setTimeout(step, 240);
-    })();
+    rounds.forEach(function(rk){
+      var head = document.createElement("div"); head.className = "roundhead";
+      var lab = document.createElement("span"); lab.className = "rlabel";
+      lab.textContent = ROUND_LABEL[rk];
+      head.appendChild(lab);
+      if (rounds.length === 1) head.style.display = "none";
+
+      var ps = roundParticipants(rk);
+      var drawn = !!S.cd[rk];
+      var note = document.createElement("span"); note.className = "rnote";
+
+      if (drawn){
+        note.textContent = (ps ? ps.length : 0) + " players";
+      } else if (!ps){
+        note.textContent = rk === "qf" ? "Waiting on the group stage" : "Waiting on the round before";
+      } else {
+        note.textContent = ps.length + " players still in";
+      }
+      head.appendChild(note);
+      box.appendChild(head);
+
+      if (!drawn){
+        if (ps && isAdmin){
+          var b = document.createElement("button");
+          b.type = "button"; b.className = "btn go"; b.style.marginBottom = "18px";
+          b.textContent = "Draw the " + ROUND_LABEL[rk].toLowerCase() + " clubs";
+          b.disabled = busy;
+          b.onclick = function(){
+            if (busy) return;
+            S.cd[rk] = Date.now();
+            teamCache = {}; busy = true; renderAll();
+            push().then(function(){ busy = false; renderAll(); });
+          };
+          box.appendChild(b);
+        } else {
+          var w = document.createElement("p"); w.className = "rwait";
+          w.textContent = ps ? "Ready to draw" : "Not yet";
+          box.appendChild(w);
+        }
+        return;
+      }
+
+      var map = clubsForRound(rk);
+      var list = document.createElement("div"); list.className = "teamlist";
+      (ps || []).forEach(function(n){
+        var card = document.createElement("div");
+        var fresh = (S.cd[rk] !== seenClubDraw[rk] && !firstPaint);
+        card.className = "tcard" + (fresh ? " hidden" : " show");
+        card.innerHTML = '<span class="badge">' + n + '</span><span class="who"><span class="club"></span></span>';
+        card.querySelector(".who").insertBefore(document.createTextNode(nameOf(n)), card.querySelector(".club"));
+        card.querySelector(".club").textContent = (map && map[n]) || "\u2014";
+        list.appendChild(card);
+      });
+      box.appendChild(list);
+
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var animate = (S.cd[rk] !== seenClubDraw[rk] && !firstPaint && !reduce);
+      seenClubDraw[rk] = S.cd[rk];
+      var cards = list.querySelectorAll(".tcard");
+      if (!animate){
+        for (var i = 0; i < cards.length; i++) cards[i].className = "tcard show";
+        return;
+      }
+      var idx = 0;
+      (function step(){
+        if (idx >= cards.length){ confetti(4); return; }
+        cards[idx].className = "tcard show";
+        idx++; setTimeout(step, 240);
+      })();
+    });
   }
 
   /* ---------- fixtures ---------- */
@@ -1371,6 +1499,14 @@
       var nm = document.createElement("span");
       nm.className = "nm" + (who.name ? "" : " tbd");
       nm.textContent = who.name || who.label;
+      if (who.name){
+        var kc = clubOf(numOf(who.name), koRoundKey(st.def.round));
+        if (kc){
+          var cl = document.createElement("span");
+          cl.className = "koclub"; cl.textContent = kc;
+          nm.appendChild(cl);
+        }
+      }
       var ag = document.createElement("span"); ag.className = "agg";
       ag.textContent = (agg === null || agg === undefined) ? "" : agg;
       side.appendChild(nm); side.appendChild(ag); card.appendChild(side);
@@ -1431,7 +1567,7 @@
     var champ = tieState(comp, cd.def.length - 1).winner;
     if (champ){
       var w = document.createElement("div"); w.className = "winner";
-      w.innerHTML = '<div class="lbl">' + (comp === "cup" ? "Last Legs Cup winner" : "Wooden Spoon winner") + '</div><div class="nm"></div>';
+      w.innerHTML = '<div class="lbl">' + (comp === "cup" ? CUP_NAME + " winner" : SPOON_NAME + " winner") + '</div><div class="nm"></div>';
       w.querySelector(".nm").textContent = champ;
       wrapC.appendChild(w);
       if (celebrated[comp] !== champ){ celebrated[comp] = champ; setTimeout(function(){ confetti(6); }, 250); }
@@ -1445,8 +1581,8 @@
     sec.hidden = false;
     var host = $("brackets"); host.innerHTML = "";
     var done = groupsComplete();
-    host.appendChild(compBlock("cup","The Last Legs Cup", done ? "Top 4 from each group" : "Fills in when the group stage finishes"));
-    host.appendChild(compBlock("spoon","The Wooden Spoon", done ? "Bottom 4 from each group" : "Fills in when the group stage finishes"));
+    host.appendChild(compBlock("cup", CUP_NAME, done ? "Top 4 from each group" : "Fills in when the group stage finishes"));
+    host.appendChild(compBlock("spoon", SPOON_NAME, done ? "Bottom 4 from each group" : "Fills in when the group stage finishes"));
   }
 
   /* ---------- verify + status ---------- */
@@ -1483,6 +1619,31 @@
   }
 
   var lastClaimCount = -1;
+  function renderNames(){
+    var t = $("title");
+    if (t) t.innerHTML = "";
+    if (t){
+      t.appendChild(document.createTextNode(NAME_LINE1));
+      if (NAME_LINE2){
+        t.appendChild(document.createElement("br"));
+        var sp = document.createElement("span");
+        sp.className = "thin"; sp.textContent = NAME_LINE2;
+        t.appendChild(sp);
+      }
+    }
+    var tg = $("tagline");
+    if (tg) tg.textContent = TAGLINE;
+    try { document.title = (NAME_LINE1 + " " + NAME_LINE2).trim(); } catch(e){}
+  }
+
+  function renderClubRule(){
+    var el = $("clubRule");
+    if (!el) return;
+    el.innerHTML = (CLUB_MODE === "once")
+      ? "<b>Drawn, not picked.</b> Every side in the pot is rated 4 stars. You get what you get and you keep it all tournament &mdash; no swaps, no rematches because you don't fancy yours."
+      : "<b>Drawn, not picked &mdash; and redrawn every round.</b> One club for the whole group stage, then a fresh 4-star club before the quarters, again before the semis, and again before the finals. Nobody chooses, nobody swaps, and nobody is stuck with a duffer for a fortnight.";
+  }
+
   function renderStatus(){
     var n = claimTotal(), pl = result ? playedCount() : 0;
     var cc = $("claimCount");
@@ -1538,10 +1699,11 @@
   }
 
   function renderAll(){
-    standCache = null; teamCache = null;
+    standCache = null; teamCache = {};
     if (S.lk && claimTotal() === PLAYERS){
       result = computeDraw(); buildTies();
     } else { result = null; ties = []; }
+    renderNames(); renderClubRule();
     renderLive(); renderStatus(); renderGrid(); renderClaimBox();
     renderResult(); renderLadder(); renderTeams(); renderFixtures(); renderKO(); renderVerify();
     firstPaint = false;
