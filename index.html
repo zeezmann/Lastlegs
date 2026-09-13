@@ -242,11 +242,10 @@
   table.tbl th + th, table.tbl td + td{padding-left:9px}
   .badge{font-family:var(--display);font-weight:700;font-size:13px;width:28px;height:28px;display:grid;place-items:center;background:var(--surface-2);border:1px solid var(--star-dim);color:var(--star);font-variant-numeric:tabular-nums}
   .grp.b .badge{border-color:var(--gold-dim);color:var(--gold)}
-  tr.qual td{background:linear-gradient(90deg,rgba(127,166,255,.10),transparent 62%)}
-  .grp.b tr.qual td{background:linear-gradient(90deg,rgba(231,200,120,.10),transparent 62%)}
-  tr.qual td.pos{color:var(--star);font-weight:700}
-  .grp.b tr.qual td.pos{color:var(--gold)}
-  tr.qual td.player{color:#fff}
+  /* Cup cut-off. Deliberately faint - a hint of a band, not a second row style.
+     Position numbers and names match rows 5-8 exactly. */
+  tr.qual td{background:linear-gradient(90deg,rgba(127,166,255,.035),transparent 55%)}
+  .grp.b tr.qual td{background:linear-gradient(90deg,rgba(231,200,120,.035),transparent 55%)}
   tr.hidden td{opacity:0;transform:translateY(10px)}
   tr.show td{opacity:1;transform:none;transition:opacity .4s ease,transform .4s cubic-bezier(.2,.9,.3,1)}
   .qkey{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 0}
@@ -306,6 +305,10 @@
   .leg input:disabled{opacity:.45;cursor:default}
   .leg span.dash{color:var(--dim);font-family:var(--mono);font-size:11px}
   .scoreline{font-family:var(--mono);font-size:14.5px;font-weight:600;color:var(--star);text-align:center;margin-top:7px;letter-spacing:.04em}
+  .scoreline .legline{display:block;white-space:nowrap}
+  .scoreline .legline + .legline{margin-top:3px}
+  .scoreline .legline b{color:var(--text);font-weight:700}
+  .scoreline .legline i{font-style:normal;color:var(--dim);font-weight:500}
 
   .comp{margin-bottom:34px}
   .comp-bar{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:13px 18px;border:1px solid var(--line);background:var(--ground-2);border-left:3px solid var(--star)}
@@ -594,6 +597,7 @@
   <footer>
     <span id="footState">Draw sealed</span>
     <span id="seedTag"></span>
+    <span id="buildTag"></span>
     <button class="btn ghost" id="resetBtn" hidden>Start over</button>
   </footer>
 </div>
@@ -632,6 +636,10 @@
   var CLUB_MODE = "once";
 
   var DB_PATH = "lastlegs";
+
+  // Bumped every time this file changes. Shown in the footer so you can tell at
+  // a glance whether the copy being served is the copy you uploaded.
+  var BUILD = "v10";
 
   /* ============================================================ */
 
@@ -775,7 +783,16 @@
 
   function claimTotal(){ var c = 0; for (var i = 0; i < PLAYERS; i++){ if (S.n[i]) c++; } return c; }
   function usedNames(){ return S.n.filter(Boolean); }
-  function nameOf(num){ return S.n[num-1] || ("No. " + num); }
+  // Replacements. Key = the name the draw was run under, value = who's playing
+  // now. Only the DISPLAY changes - the seed still uses the original, so the
+  // groups, the clubs and every result stay exactly where they are.
+  var RENAMES = { "Dre": "Daniel" };
+  function label(nm){ return (nm && RENAMES[nm]) ? RENAMES[nm] : nm; }
+  function unlabel(nm){
+    for (var k in RENAMES){ if (RENAMES[k] === nm) return k; }
+    return nm;
+  }
+  function nameOf(num){ return label(S.n[num-1]) || ("No. " + num); }
   function legScore(str){
     var m = (str || "").match(/^(\d{1,2}),(\d{1,2})$/);
     return m ? [parseInt(m[1],10), parseInt(m[2],10)] : null;
@@ -898,7 +915,8 @@
   var ROUND_LABEL = { g:"Group stage", qf:"Quarter-finals", sf:"Semi-finals", f:"Finals" };
 
   function numOf(name){
-    for (var i = 0; i < PLAYERS; i++){ if (S.n[i] === name) return i+1; }
+    var raw = unlabel(name);
+    for (var i = 0; i < PLAYERS; i++){ if (S.n[i] === raw || S.n[i] === name) return i+1; }
     return 0;
   }
 
@@ -1154,20 +1172,21 @@
     var g = $("grid"); g.innerHTML = "";
     for (var n = 1; n <= PLAYERS; n++){
       var who = S.n[n-1] || null;
+      var shown = label(who);
       var b = document.createElement("button");
       b.type = "button";
       b.className = "tile" + (who ? " taken" : "") + (selectedTile === n ? " sel" : "") + (freshTile === n ? " fresh" : "");
       b.disabled = S.lk || !!who || busy || !isAdmin;
-      b.setAttribute("aria-label", who ? ("Number " + n + " - " + who) : ("Number " + n + " - free"));
+      b.setAttribute("aria-label", who ? ("Number " + n + " - " + shown) : ("Number " + n + " - free"));
       if (who){
         var ini = document.createElement("span");
         ini.className = "ini";
-        ini.style.background = colourOf(who);
-        ini.textContent = who.charAt(0).toUpperCase();
+        ini.style.background = colourOf(shown);
+        ini.textContent = shown.charAt(0).toUpperCase();
         b.appendChild(ini);
       }
       var num = document.createElement("span"); num.className = "num"; num.textContent = n;
-      var lbl = document.createElement("span"); lbl.className = "who"; lbl.textContent = who ? who : "Free";
+      var lbl = document.createElement("span"); lbl.className = "who"; lbl.textContent = who ? shown : "Free";
       b.appendChild(num); b.appendChild(lbl);
       (function(k){ b.onclick = function(){ selectedTile = (selectedTile === k ? null : k); renderGrid(); renderClaimBox(); }; })(n);
       g.appendChild(b);
@@ -1185,7 +1204,7 @@
     sel.appendChild(ph);
     ROSTER.forEach(function(nm){
       if (used.indexOf(nm) !== -1) return;
-      var o = document.createElement("option"); o.value = nm; o.textContent = nm; sel.appendChild(o);
+      var o = document.createElement("option"); o.value = nm; o.textContent = label(nm); sel.appendChild(o);
     });
     if (prev && used.indexOf(prev) === -1) sel.value = prev;
     sel.disabled = busy;
@@ -1608,10 +1627,22 @@
         legs.appendChild(legBlock("L2", bag, t.i2, false));
         box.appendChild(legs);
       } else {
+        // Names on every leg. Both legs read left-to-right in the same order,
+        // and spelling it out stops anyone reading leg two back to front.
         var sl = document.createElement("div"); sl.className = "scoreline";
-        sl.textContent = isPlayed
-          ? (s1[0] + "–" + s1[1] + "   ·   " + s2[0] + "–" + s2[1])
-          : "—";
+        if (isPlayed){
+          [["L1", s1], ["L2", s2]].forEach(function(pair){
+            var ln = document.createElement("span"); ln.className = "legline";
+            var tag = document.createElement("i"); tag.textContent = pair[0] + "  ";
+            var h = document.createElement("b"); h.textContent = an;
+            var mid = document.createTextNode("  " + pair[1][0] + "–" + pair[1][1] + "  ");
+            var a2 = document.createElement("b"); a2.textContent = bn;
+            ln.appendChild(tag); ln.appendChild(h); ln.appendChild(mid); ln.appendChild(a2);
+            sl.appendChild(ln);
+          });
+        } else {
+          sl.textContent = "—";
+        }
         box.appendChild(sl);
       }
       col.appendChild(box);
@@ -1721,7 +1752,15 @@
       card.appendChild(legs);
     } else if (st.l1 && st.l2){
       var sl = document.createElement("div"); sl.className = "scoreline";
-      sl.textContent = st.l1[0] + "–" + st.l1[1] + "   ·   " + st.l2[0] + "–" + st.l2[1];
+      [["L1", st.l1], ["L2", st.l2]].forEach(function(pair){
+        var ln = document.createElement("span"); ln.className = "legline";
+        var tag = document.createElement("i"); tag.textContent = pair[0] + "  ";
+        var h = document.createElement("b"); h.textContent = st.a.name || st.a.label;
+        var mid = document.createTextNode("  " + pair[1][0] + "–" + pair[1][1] + "  ");
+        var a2 = document.createElement("b"); a2.textContent = st.b.name || st.b.label;
+        ln.appendChild(tag); ln.appendChild(h); ln.appendChild(mid); ln.appendChild(a2);
+        sl.appendChild(ln);
+      });
       card.appendChild(sl);
     }
 
@@ -1790,7 +1829,12 @@
     if (!result){ sec.hidden = true; return; }
     sec.hidden = false;
     var lines = [];
-    for (var n = 1; n <= PLAYERS; n++) lines.push(n + " → " + nameOf(n));
+    // This line has to stay literally true - it's what the seed is built from.
+    // A replaced player shows under the name the draw was run with.
+    for (var n = 1; n <= PLAYERS; n++){
+      var raw = S.n[n-1] || ("No. " + n), shown = label(raw);
+      lines.push(n + " → " + raw + (shown !== raw ? (" (now " + shown + ")") : ""));
+    }
     if (S.rd) lines.push("draw " + S.rd);
     $("verifyInput").textContent = lines.join("   ·   ");
     $("verifySeed").textContent = result.seed.toString(16).toUpperCase();
@@ -1863,6 +1907,8 @@
     $("seedTag").textContent = result ? ("Draw seed " + result.seed.toString(16).toUpperCase()) : "";
     $("tableTitle").textContent = (result && pl) ? "Groups & table" : "The draw";
     $("resetBtn").hidden = !isAdmin;
+    // Spectators just see the build. The draw counter is gaffer-only.
+    $("buildTag").textContent = "Build " + BUILD + ((isAdmin && S.rd) ? (" · draw " + (S.rd + 1)) : "");
 
     var btn = $("lockBtn");
     if (S.lk){
