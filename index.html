@@ -223,7 +223,8 @@
   .btn-hero:disabled{background:transparent;color:var(--dim);border:1px dashed var(--line);opacity:1}
 
   .groups{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  .grp{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--star);padding:18px;animation:riseIn .5s ease both}
+  /* min-width:0 lets .tblwrap actually scroll instead of stretching the page */
+  .grp{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--star);padding:18px;animation:riseIn .5s ease both;min-width:0}
   .grp.b{animation-delay:.1s}
   .grp.b{border-top-color:var(--gold)}
   .grp h3{font-family:var(--display);text-transform:uppercase;font-size:24px;font-weight:700;letter-spacing:.1em;margin:0 0 3px;color:var(--star)}
@@ -249,6 +250,104 @@
   tr.hidden td{opacity:0;transform:translateY(10px)}
   tr.show td{opacity:1;transform:none;transition:opacity .4s ease,transform .4s cubic-bezier(.2,.9,.3,1)}
   .qkey{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 0}
+
+  /* collapsible blocks */
+  .fold > summary{
+    list-style:none;cursor:pointer;user-select:none;
+    display:flex;align-items:center;gap:10px;
+    padding:14px 16px;background:var(--surface);border:1px solid var(--line);
+    font-family:var(--mono);font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--star);transition:background .15s ease,border-color .15s ease;
+  }
+  .fold > summary::-webkit-details-marker{display:none}
+  .fold > summary::before{
+    content:"+";font-size:17px;line-height:1;color:var(--gold);width:14px;text-align:center;
+  }
+  .fold[open] > summary::before{content:"\2212"}
+  .fold > summary:hover{background:var(--surface-2);border-color:var(--star-dim)}
+  .fold > summary:focus-visible{outline:2px solid var(--star);outline-offset:2px}
+  .fold[open] > summary{margin-bottom:18px}
+  .md-body.solo{grid-template-columns:1fr}
+  .streak{margin-left:6px;font-size:13px;vertical-align:middle}
+
+  /* your tournament */
+  .mine{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--gold);padding:20px}
+  .mhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  .mhead b{font-family:var(--display);font-size:30px;font-weight:700;text-transform:uppercase;color:var(--text);line-height:1}
+  .mhead span{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--star)}
+  .mstats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .mstat{padding:12px 14px;background:var(--surface-2);border:1px solid var(--line-soft)}
+  .mstat b{display:block;font-family:var(--display);font-size:22px;font-weight:600;color:var(--text);line-height:1.1}
+  .mstat span{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-top:5px}
+  .mnext{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:16px;padding:13px 15px;background:var(--surface-2);border-left:3px solid var(--star)}
+  .mnext .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+  .mnext b{font-family:var(--display);font-size:21px;font-weight:600;color:var(--text)}
+  .mnext em{font-style:normal;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--star)}
+  .pace{margin-top:14px;font-size:15px;line-height:1.5;padding:12px 15px;border-left:3px solid var(--line)}
+  .pace.good{color:var(--go);background:rgba(91,214,164,.06);border-left-color:var(--go)}
+  .pace.bad{color:var(--live);background:rgba(255,122,133,.06);border-left-color:var(--live)}
+
+  /* records */
+  .recs{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .rec{padding:15px 16px;background:var(--surface);border:1px solid var(--line)}
+  .rec .rl{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+  .rec b{display:block;font-family:var(--display);font-size:29px;font-weight:700;color:var(--text);line-height:1.1;margin:7px 0 5px}
+  .rec .rs{display:block;font-size:12.5px;color:var(--muted);line-height:1.4}
+
+  /* one player's fixture list */
+  .mylist{border:1px solid var(--line);background:var(--surface)}
+  .myrow{display:flex;align-items:center;justify-content:space-between;gap:14px;
+         padding:14px 16px;border-top:1px solid var(--line-soft)}
+  .myrow:first-child{border-top:0}
+  .myrow.done{background:rgba(127,166,255,.03)}
+  .myrow .mw b{font-family:var(--display);font-size:21px;font-weight:600;color:var(--text);display:block;line-height:1.15}
+  .myrow .mw .club{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--star);margin-top:3px}
+  .myrow .ms{text-align:right;font-family:var(--mono);font-size:14px;font-weight:600}
+  .myrow .ms .legline{display:block;white-space:nowrap}
+  .myrow .ms .legline + .legline{margin-top:3px}
+  .myrow .ms i{font-style:normal;color:var(--dim);font-weight:500;font-size:11px}
+  .myrow .ms b.win{color:var(--go)}
+  .myrow .ms b.loss{color:var(--live)}
+  .myrow .ms b.draw{color:var(--muted)}
+  .myrow .ms .topl{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+  @media (max-width:760px){ .mstats{grid-template-columns:repeat(2,1fr)} .recs{grid-template-columns:repeat(2,1fr)} }
+
+  /* why a level row sits where it does */
+  /* Wraps and is width-capped, otherwise nowrap on the player cell drags the
+     whole table wider than a phone screen. */
+  .why{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;
+       text-transform:uppercase;color:var(--dim);margin-top:4px;font-weight:500;
+       white-space:normal;max-width:19ch;line-height:1.35}
+
+  /* chase list */
+  .chase{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .owe{display:flex;align-items:center;justify-content:space-between;gap:10px;
+       padding:11px 13px;background:var(--surface);border:1px solid var(--line);
+       border-left:3px solid var(--line)}
+  .owe.warm{border-left-color:var(--gold)}
+  .owe.hot{border-left-color:var(--live)}
+  .owe .nm{font-family:var(--display);font-size:18px;font-weight:600;color:var(--text)}
+  .owe .n{font-family:var(--mono);font-size:19px;font-weight:600;color:var(--star);font-variant-numeric:tabular-nums}
+  .owe.hot .n{color:var(--live)}
+  .owe .n small{display:block;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-weight:500;text-align:right}
+  .allclear{padding:22px;background:var(--surface);border:1px solid var(--line);text-align:center;
+            font-family:var(--display);font-size:21px;text-transform:uppercase;color:var(--go)}
+
+  /* golden boot */
+  .boots{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .boot h3{font-family:var(--display);font-size:17px;text-transform:uppercase;letter-spacing:.05em;margin:0 0 12px;color:var(--gold)}
+  .boot.leaky h3{color:var(--live)}
+  .bootrow{display:grid;grid-template-columns:20px 1fr auto;gap:11px;align-items:baseline;
+           padding:9px 0;border-top:1px solid var(--line-soft)}
+  .bootrow:first-of-type{border-top:0}
+  .bootrow .r{font-family:var(--mono);font-size:12px;color:var(--dim)}
+  .bootrow .nm{font-family:var(--display);font-size:18px;font-weight:600;color:var(--text)}
+  .bootrow .nm em{font-style:normal;font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+                  text-transform:uppercase;color:var(--dim);display:block;margin-top:2px}
+  .bootrow .v{font-family:var(--mono);font-size:17px;font-weight:600;color:var(--gold);font-variant-numeric:tabular-nums;text-align:right}
+  .boot.leaky .bootrow .v{color:var(--live)}
+  .bootrow .v small{display:block;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:500}
+  @media (max-width:760px){ .chase{grid-template-columns:repeat(2,1fr)} .boots{grid-template-columns:1fr} }
   .qkey b{color:var(--star);font-weight:500}
   .grp.b .qkey b{color:var(--gold)}
   td.player .club{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--star);font-weight:400;margin-top:3px}
@@ -408,7 +507,21 @@
     .groups,.cols,.md-body,.rounds{grid-template-columns:1fr}
     .md-col + .md-col{border-left:0;border-top:1px solid var(--line-soft)}
   }
-  @media (max-width:560px){ .opt{display:none} }
+  /* Phones drop the wide columns but keep a compact record and short form,
+     so nobody loses their W-D-L and goals just for being on a handset. */
+  .sm{display:none}
+  @media (max-width:560px){
+    .opt{display:none}
+    .sm{display:table-cell}
+    table.tbl th + th, table.tbl td + td{padding-left:6px}
+    table.tbl th.sm, table.tbl td.sm{white-space:nowrap}
+    table.tbl td.player{font-size:17px;padding-right:6px}
+    /* let the club name wrap so it stops setting the column width */
+    table.tbl td.player .club{font-size:10px;white-space:normal;max-width:13ch}
+    .why{font-size:9.5px;max-width:19ch;letter-spacing:.02em}
+    .form i{width:15px;height:15px;font-size:9.5px}
+    .form{gap:2px}
+  }
   @media (max-width:420px){
     .wrap{padding-inline:16px}
     .grid{grid-template-columns:repeat(4,1fr);gap:8px}
@@ -505,6 +618,48 @@
     </div>
   </section>
 
+  <section id="mineSec" hidden>
+    <div class="sec-head">
+      <h2>Your tournament</h2>
+      <span class="sec-note">Whoever you picked in the fixtures</span>
+    </div>
+    <div class="mine">
+      <div class="mhead">
+        <b id="mineWho"></b><span id="mineClub"></span>
+      </div>
+      <div class="mstats" id="mineStat"></div>
+      <div class="mnext" id="mineNext" hidden></div>
+      <div class="pace" id="minePace"></div>
+    </div>
+  </section>
+
+  <section id="recSec" hidden>
+    <div class="sec-head">
+      <h2>Records</h2>
+      <span class="sec-note">The tournament so far</span>
+    </div>
+    <div class="recs" id="recBody"></div>
+  </section>
+
+  <section id="bootSec" hidden>
+    <div class="sec-head">
+      <h2>Goals</h2>
+      <span class="sec-note">Per game, so games in hand don't flatter anyone</span>
+    </div>
+    <div class="boots">
+      <div class="panel boot"><h3>Golden Boot</h3><div id="bootTop"></div></div>
+      <div class="panel boot leaky"><h3>Leakiest defence</h3><div id="bootBot"></div></div>
+    </div>
+  </section>
+
+  <section id="chaseSec" hidden>
+    <div class="sec-head">
+      <h2>Still to play</h2>
+      <span class="sec-note" id="chaseNote"></span>
+    </div>
+    <div id="chaseBody"></div>
+  </section>
+
   <section id="teamSec" hidden>
     <div class="sec-head">
       <h2>The club draw</h2>
@@ -516,7 +671,7 @@
   <section id="fixtureSec" hidden>
     <div class="sec-head">
       <h2>Fixtures &amp; results</h2>
-      <span class="sec-note">Agree your own kick-off &middot; deadlines below</span>
+      <span class="sec-note">Play in any order &middot; all 14 done by Sat 19 Sept</span>
     </div>
     <div class="filterbar">
       <div class="filtergrp">
@@ -536,7 +691,10 @@
       <h2>Knockout stage</h2>
       <span class="sec-note">Two legs &middot; aggregate &middot; higher group finish if level</span>
     </div>
-    <div id="brackets"></div>
+    <details class="fold" id="koFold">
+      <summary id="koSummary">The brackets</summary>
+      <div id="brackets"></div>
+    </details>
   </section>
 
   <section id="verifySec" hidden>
@@ -557,9 +715,11 @@
       <h2>How it runs</h2>
       <span class="sec-note">Read it before you moan</span>
     </div>
+    <details class="fold">
+      <summary>Deadlines &amp; full rules</summary>
     <div class="cols">
       <div class="panel">
-        <h3>Deadlines, not kick-off times</h3>
+        <h3>A pace guide, not a timetable</h3>
         <div class="cal">
           <div class="cal-row"><span class="when">By Sat 12</span><span class="what">Matchday 1<small>Play whenever suits the pair of you</small></span></div>
           <div class="cal-row"><span class="when">By Sun 13</span><span class="what">Matchday 2</span></div>
@@ -572,7 +732,7 @@
           <div class="cal-row k"><span class="when">By Tue 22</span><span class="what">Semi-finals<small>Two legs &middot; both competitions</small></span></div>
           <div class="cal-row k"><span class="when">By Thu 24</span><span class="what">Both finals<small>Both competitions</small></span></div>
         </div>
-        <div class="backstop">Play <b>ahead</b> of these whenever you like &mdash; stack three matchdays into one evening if you're both free. The dates are the latest you can leave it, not when you have to be online.</div>
+        <div class="backstop">Play them <b>in any order you like</b>, whenever you and your opponent are both free &mdash; nobody is playing to matchdays. These dates are only there so we all move at roughly the same speed: by each one you should have <b>two more legs</b> in the bag. Get too far behind and everyone else is sat waiting on you. <b>All 14 must be played by Sat 19 Sept.</b></div>
       </div>
       <div class="panel">
         <h3>The rules</h3>
@@ -592,6 +752,7 @@
         </ul>
       </div>
     </div>
+    </details>
   </section>
 
   <footer>
@@ -639,7 +800,7 @@
 
   // Bumped every time this file changes. Shown in the footer so you can tell at
   // a glance whether the copy being served is the copy you uploaded.
-  var BUILD = "v10";
+  var BUILD = "v13";
 
   /* ============================================================ */
 
@@ -647,6 +808,24 @@
                 "Crespo","Olamix","Salvage","Adexzy","Pyrex","Dee","Rotimi","Abraham"];
   var PLAYERS = 16, PER_GROUP = 8;
   var DEADLINES = ["Sat 12 Sept","Sun 13 Sept","Mon 14 Sept","Tue 15 Sept","Wed 16 Sept","Thu 17 Sept","Sat 19 Sept"];
+  // Real dates behind those labels. Nobody plays to matchdays - they play when
+  // their opponent is free - so these aren't fixture dates any more, they're a
+  // pace guide: 2 legs per matchday whose date has gone by.
+  var DEADLINE_DATES = ["2026-09-12","2026-09-13","2026-09-14","2026-09-15","2026-09-16","2026-09-17","2026-09-19"];
+  function endOfDay(iso){
+    var p = iso.split("-");
+    return new Date(+p[0], +p[1]-1, +p[2], 23, 59, 59, 999).getTime();
+  }
+  // How many of your 14 legs you ought to have played by now.
+  function paceTarget(){
+    var now = Date.now(), done = 0;
+    for (var i = 0; i < DEADLINE_DATES.length; i++){ if (now > endOfDay(DEADLINE_DATES[i])) done++; }
+    return Math.min(done * 2, 14);
+  }
+  function daysLeft(){
+    var end = endOfDay(DEADLINE_DATES[DEADLINE_DATES.length-1]);
+    return Math.ceil((end - Date.now()) / 86400000);
+  }
   var TOTAL_LEGS = 112, KO_LEGS = 14, KO_TIES = 7;
 
   // 8-team round robin. Both groups use it. Each pair is one double-header.
@@ -687,8 +866,25 @@
   };
 
   var dbRef = null, connected = false, isAdmin = false, busy = false;
-  var freshTile = 0, selectedTile = null, filter = null, statusFilter = "all";
+  // Fixtures used to render all 112 legs at once - a third of the page. It now
+  // opens on one player's ties. Which player is a per-viewer convenience, so it
+  // lives in that viewer's own browser and never goes near the shared data.
+  var PICK_NONE = " pick";
+  var FILTER_KEY = "fifacup.fixtureFilter";
+  function loadFilter(){
+    try {
+      var v = localStorage.getItem(FILTER_KEY);
+      if (v === null) return PICK_NONE;
+      return v === "" ? null : v;
+    } catch(e){ return PICK_NONE; }
+  }
+  function saveFilter(v){
+    try { localStorage.setItem(FILTER_KEY, v === null ? "" : v); } catch(e){}
+  }
+
+  var freshTile = 0, selectedTile = null, filter = loadFilter(), statusFilter = "all";
   var result = null, ties = [], standCache = null, teamCache = {};
+
   var seenDrawnAt = 0, seenClubDraw = { g:0, qf:0, sf:0, f:0 }, firstPaint = true;
 
   var $ = function(id){ return document.getElementById(id); };
@@ -1036,6 +1232,18 @@
           if (y.gf !== x.gf) return y.gf - x.gf;
           return x.name.localeCompare(y.name);
         });
+        // Say out loud what separated each level pair, so nobody has to ask.
+        for (var ci = 0; ci < cluster.length - 1; ci++){
+          var xx = cluster[ci], yy = cluster[ci+1];
+          var ax = mini[xx.num], ay = mini[yy.num], why;
+          if (ax.pts !== ay.pts)      why = "head-to-head";
+          else if (ax.gd !== ay.gd)   why = "head-to-head goal difference";
+          else if (ax.gf !== ay.gf)   why = "head-to-head goals";
+          else if (xx.gd !== yy.gd)   why = "goal difference";
+          else if (xx.gf !== yy.gf)   why = "goals scored";
+          else                        why = "alphabetical order";
+          xx.why = "Above " + yy.name + " on " + why;
+        }
       }
       out = out.concat(cluster); i = j + 1;
     }
@@ -1313,8 +1521,10 @@
     var t = document.createElement("table"); t.className = "tbl";
     t.innerHTML = '<thead><tr><th class="l"></th><th class="l"></th><th class="l">Player</th>' +
       '<th>P</th><th class="opt">W</th><th class="opt">D</th><th class="opt">L</th>' +
+      '<th class="sm">W-D-L</th>' +
       '<th class="opt">GF</th><th class="opt">GA</th><th>GD</th><th>Pts</th>' +
-      '<th class="l opt" style="padding-left:12px">Form</th></tr></thead>';
+      '<th class="l opt" style="padding-left:12px">Form</th>' +
+      '<th class="l sm" style="padding-left:8px">Form</th></tr></thead>';
     var tb = document.createElement("tbody");
     rows.forEach(function(r, i){
       var tr = document.createElement("tr");
@@ -1324,10 +1534,12 @@
         '<td class="badge-c"><span class="badge">' + r.num + '</span></td>' +
         '<td class="player"></td><td>' + r.p + '</td>' +
         '<td class="opt">' + r.w + '</td><td class="opt">' + r.d + '</td><td class="opt">' + r.l + '</td>' +
+        '<td class="sm">' + r.w + '-' + r.d + '-' + r.l + '</td>' +
         '<td class="opt">' + r.gf + '</td><td class="opt">' + r.ga + '</td>' +
         '<td>' + (r.gd > 0 ? "+" : "") + r.gd + '</td>' +
         '<td class="pts">' + r.pts + '</td>' +
-        '<td class="formcell opt"></td>';
+        '<td class="formcell opt"></td>' +
+        '<td class="formcell sm"></td>';
       var pcell = tr.querySelector(".player");
       pcell.textContent = r.name;
       var club = clubOf(r.num, "g");
@@ -1335,15 +1547,27 @@
         var cs = document.createElement("span"); cs.className = "club"; cs.textContent = club;
         pcell.appendChild(cs);
       }
-      var fc = tr.querySelector(".formcell");
-      if (r.form.length){
+      if (r.why){
+        var w = document.createElement("span"); w.className = "why"; w.textContent = r.why;
+        pcell.appendChild(w);
+      }
+      [[tr.querySelector(".formcell.opt"), 5], [tr.querySelector(".formcell.sm"), 3]].forEach(function(pair){
+        var cell = pair[0];
+        if (!r.form.length){ cell.textContent = "—"; return; }
         var box = document.createElement("span"); box.className = "form";
-        r.form.slice(-5).forEach(function(ch){
+        r.form.slice(-pair[1]).forEach(function(ch){
           var s = document.createElement("i"); s.className = ch.toLowerCase(); s.textContent = ch;
           box.appendChild(s);
         });
-        fc.appendChild(box);
-      } else { fc.textContent = "—"; }
+        cell.appendChild(box);
+        var last3 = r.form.slice(-3).join("");
+        if (last3 === "WWW" || last3 === "LLL"){
+          var hot = document.createElement("span");
+          hot.className = "streak"; hot.title = last3 === "WWW" ? "Three on the bounce" : "Three straight defeats";
+          hot.textContent = last3 === "WWW" ? "🔥" : "🥶";
+          cell.appendChild(hot);
+        }
+      });
       tb.appendChild(tr);
     });
     t.appendChild(tb); wrapT.appendChild(t); d.appendChild(wrapT);
@@ -1416,6 +1640,7 @@
     var t = $("ladderTbl");
     t.innerHTML = '<thead><tr><th class="l"></th><th class="l"></th><th class="l">Player</th>' +
       '<th class="l">Grp</th><th>P</th><th class="opt">W</th><th class="opt">D</th><th class="opt">L</th>' +
+      '<th class="sm">W-D-L</th>' +
       '<th class="opt">GF</th><th class="opt">GA</th><th>GD</th><th>Pts</th>' +
       '<th class="l opt" style="padding-left:12px">Form</th></tr></thead>';
     var tb = document.createElement("tbody");
@@ -1431,6 +1656,7 @@
         '<td class="grpcell ' + row.g.toLowerCase() + '">' + row.g + '</td>' +
         '<td>' + r.p + '</td>' +
         '<td class="opt">' + r.w + '</td><td class="opt">' + r.d + '</td><td class="opt">' + r.l + '</td>' +
+        '<td class="sm">' + r.w + '-' + r.d + '-' + r.l + '</td>' +
         '<td class="opt">' + r.gf + '</td><td class="opt">' + r.ga + '</td>' +
         '<td>' + (r.gd > 0 ? "+" : "") + r.gd + '</td>' +
         '<td class="pts">' + r.pts + '</td>' +
@@ -1461,6 +1687,11 @@
   function renderTeams(){
     var sec = $("teamSec");
     if (!result){ sec.hidden = true; return; }
+    // Once the clubs are dealt this whole section is duplication - the club
+    // already sits under every name in the tables, fixtures and brackets.
+    // The pot editor and the draw button live in the !S.cd.g branch below,
+    // so hiding it here only ever hides the finished list.
+    if (CLUB_MODE === "once" && S.cd.g){ sec.hidden = true; return; }
     sec.hidden = false;
     var box = $("teamBody"); box.innerHTML = "";
 
@@ -1664,13 +1895,13 @@
     var all = document.createElement("button");
     all.type = "button"; all.className = "chip" + (filter === null ? " active" : "");
     all.textContent = "Everyone";
-    all.onclick = function(){ filter = null; renderFixtures(); };
+    all.onclick = function(){ filter = null; saveFilter(filter); renderFixtures(); renderMine(); };
     chips.appendChild(all);
     result.groupA.concat(result.groupB).map(nameOf).sort(function(x,y){ return x.localeCompare(y); }).forEach(function(nm){
       var c = document.createElement("button");
       c.type = "button"; c.className = "chip" + (filter === nm ? " active" : "");
       c.textContent = nm;
-      c.onclick = function(){ filter = (filter === nm ? null : nm); renderFixtures(); };
+      c.onclick = function(){ filter = (filter === nm ? null : nm); saveFilter(filter); renderFixtures(); renderMine(); };
       chips.appendChild(c);
     });
 
@@ -1684,18 +1915,86 @@
     });
 
     var host = $("fixtures"); host.innerHTML = "";
+
+    // First visit: ask who they are rather than dumping all 112 legs on them.
+    if (filter === PICK_NONE){
+      var ask = document.createElement("div"); ask.className = "sealed";
+      var big = document.createElement("div"); big.className = "big";
+      big.textContent = "Whose fixtures?";
+      var pp = document.createElement("p");
+      pp.textContent = "Tap your name above for your seven ties, or Everyone for all "
+        + TOTAL_LEGS + " legs. It'll remember what you picked.";
+      ask.appendChild(big); ask.appendChild(pp); host.appendChild(ask);
+      return;
+    }
+
+    // One player: a plain list of their seven ties. Matchday headers and their
+    // dates only confuse things when nobody plays to matchdays anyway.
+    if (filter !== null){
+      var meNum = numOf(filter);
+      if (meNum){
+        var mine = legsFor(meNum).filter(function(l){
+          if (statusFilter === "played") return l.played;
+          if (statusFilter === "todo") return !l.played;
+          return true;
+        });
+        if (!mine.length){
+          var none = document.createElement("div"); none.className = "sealed";
+          none.innerHTML = '<div class="big">Nothing here</div><p></p>';
+          none.querySelector("p").textContent = statusFilter === "played"
+            ? "Nothing played yet under this filter."
+            : "Everything under this filter is done.";
+          host.appendChild(none);
+          return;
+        }
+        var listWrap = document.createElement("div"); listWrap.className = "mylist";
+        mine.forEach(function(l){
+          var row = document.createElement("div");
+          row.className = "myrow" + (l.played ? " done" : "");
+          var who = document.createElement("div"); who.className = "mw";
+          var on = document.createElement("b"); on.textContent = nameOf(l.opp);
+          who.appendChild(on);
+          var oc = clubOf(l.opp, "g");
+          if (oc){ var c = document.createElement("span"); c.className = "club"; c.textContent = oc; who.appendChild(c); }
+          var sc = document.createElement("div"); sc.className = "ms";
+          if (l.played){
+            [l.s1, l.s2].forEach(function(s, k){
+              var ln = document.createElement("span"); ln.className = "legline";
+              var mine1 = l.home ? s[0] : s[1], theirs = l.home ? s[1] : s[0];
+              var tag = document.createElement("i"); tag.textContent = "L" + (k+1) + "  ";
+              var res = document.createElement("b");
+              res.textContent = mine1 + "–" + theirs;
+              res.className = mine1 > theirs ? "win" : (mine1 < theirs ? "loss" : "draw");
+              ln.appendChild(tag); ln.appendChild(res);
+              sc.appendChild(ln);
+            });
+          } else {
+            sc.innerHTML = '<span class="topl">To play</span>';
+          }
+          row.appendChild(who); row.appendChild(sc);
+          listWrap.appendChild(row);
+        });
+        host.appendChild(listWrap);
+        return;
+      }
+    }
+
     var anyShown = 0;
     for (var md = 0; md < 7; md++){
       var ca = colFor("Group A","A",md), cb = colFor("Group B","B",md);
-      var count = parseInt(ca.dataset.shown,10) + parseInt(cb.dataset.shown,10);
+      var na = parseInt(ca.dataset.shown,10), nb = parseInt(cb.dataset.shown,10);
+      var count = na + nb;
       if (!count) continue;
       anyShown += count;
+      // Filtered to one player, the other group's column is just a dash.
+      var solo = (na === 0 || nb === 0);
       var card = document.createElement("div"); card.className = "md";
       var head = document.createElement("div"); head.className = "md-head";
       head.innerHTML = '<span class="n">Matchday ' + (md+1) + '</span><span class="d"><em>Play by</em> ' + DEADLINES[md] + '</span>';
       card.appendChild(head);
-      var body = document.createElement("div"); body.className = "md-body";
-      body.appendChild(ca); body.appendChild(cb);
+      var body = document.createElement("div"); body.className = "md-body" + (solo ? " solo" : "");
+      if (na) body.appendChild(ca);
+      if (nb) body.appendChild(cb);
       card.appendChild(body); host.appendChild(card);
     }
     if (!anyShown){
@@ -1818,8 +2117,255 @@
     sec.hidden = false;
     var host = $("brackets"); host.innerHTML = "";
     var done = groupsComplete();
+    // Folded shut while it's all placeholders. Springs open the moment the
+    // group stage finishes, and stays however the viewer left it after that.
+    var fold = $("koFold");
+    if (fold){
+      if (fold.dataset.seen !== "1"){ fold.open = done; fold.dataset.seen = "1"; }
+      else if (done && fold.dataset.wasDone !== "1"){ fold.open = true; }
+      fold.dataset.wasDone = done ? "1" : "0";
+      $("koSummary").textContent = done
+        ? "The brackets"
+        : "The brackets — fills in when the group stage finishes";
+    }
     host.appendChild(compBlock("cup", CUP_NAME, done ? "Top 4 from each group" : "Fills in when the group stage finishes"));
     host.appendChild(compBlock("spoon", SPOON_NAME, done ? "Bottom 4 from each group" : "Fills in when the group stage finishes"));
+  }
+
+  /* ---------- one player's own picture ---------- */
+
+  // Every leg involving this number, in fixture order.
+  function legsFor(num){
+    var out = [];
+    ties.forEach(function(t){
+      if (t.a !== num && t.b !== num) return;
+      var s1 = legScore(S.r[t.i1]), s2 = legScore(S.r[t.i2]);
+      out.push({ tie:t, opp: (t.a === num ? t.b : t.a), home: (t.a === num),
+                 s1:s1, s2:s2, played: !!(s1 && s2) });
+    });
+    return out;
+  }
+
+  function myRow(num){
+    var st = stand(), letters = ["A","B"];
+    for (var g = 0; g < letters.length; g++){
+      var rows = st[letters[g]];
+      for (var i = 0; i < rows.length; i++){
+        if (rows[i].num === num) return { row: rows[i], group: letters[g], pos: i+1 };
+      }
+    }
+    return null;
+  }
+
+  function renderMine(){
+    var sec = $("mineSec");
+    if (!sec) return;
+    var num = (filter && filter !== PICK_NONE) ? numOf(filter) : 0;
+    if (!result || !num){ sec.hidden = true; return; }
+    var info = myRow(num);
+    if (!info){ sec.hidden = true; return; }
+    sec.hidden = false;
+
+    var legs = legsFor(num);
+    var played = legs.filter(function(l){ return l.played; }).length * 2;
+    var left = 14 - played;
+    var next = null;
+    for (var i = 0; i < legs.length; i++){ if (!legs[i].played){ next = legs[i]; break; } }
+
+    $("mineWho").textContent = nameOf(num);
+    var club = clubOf(num, "g");
+    $("mineClub").textContent = club || "";
+
+    var r = info.row;
+    $("mineStat").innerHTML = "";
+    [[ordinal(info.pos) + " in Group " + info.group, "position"],
+     [r.pts + " pts", r.w + "W " + r.d + "D " + r.l + "L"],
+     [(r.gd > 0 ? "+" : "") + r.gd + " GD", r.gf + " scored, " + r.ga + " shipped"],
+     [played + " of 14", left ? (left + " legs left") : "all played"]
+    ].forEach(function(pair){
+      var b = document.createElement("div"); b.className = "mstat";
+      var big = document.createElement("b"); big.textContent = pair[0];
+      var sub = document.createElement("span"); sub.textContent = pair[1];
+      b.appendChild(big); b.appendChild(sub);
+      $("mineStat").appendChild(b);
+    });
+
+    var nx = $("mineNext");
+    if (next){
+      var oc = clubOf(next.opp, "g");
+      nx.innerHTML = '<span class="lbl">Next up</span><b></b><em></em>';
+      nx.querySelector("b").textContent = nameOf(next.opp);
+      nx.querySelector("em").textContent = oc ? oc : "";
+      nx.hidden = false;
+    } else { nx.hidden = true; }
+
+    var target = paceTarget(), pace = $("minePace"), dl = daysLeft();
+    if (!left){
+      pace.className = "pace good";
+      pace.textContent = "All 14 played. Nothing holding anyone up.";
+    } else if (played >= target){
+      pace.className = "pace good";
+      pace.textContent = "On schedule — " + left + " leg" + (left===1?"":"s") + " left"
+        + (dl > 0 ? (", " + dl + " day" + (dl===1?"":"s") + " to go") : "");
+    } else {
+      var behind = target - played;
+      pace.className = "pace bad";
+      pace.textContent = behind + " leg" + (behind===1?"":"s") + " behind the pace — you should be on "
+        + target + " of 14 by now. Get them booked in before the rest are sat waiting on you.";
+    }
+  }
+
+  /* ---------- who still owes games ---------- */
+
+  function renderChase(){
+    var sec = $("chaseSec");
+    if (!result){ sec.hidden = true; return; }
+    sec.hidden = false;
+
+    var owed = {}, total = 0;
+    result.groupA.concat(result.groupB).forEach(function(n){ owed[n] = 0; });
+    ties.forEach(function(t){
+      [t.i1, t.i2].forEach(function(i){
+        if (legScore(S.r[i])) return;
+        owed[t.a]++; owed[t.b]++; total++;
+      });
+    });
+
+    var list = Object.keys(owed).map(function(k){
+      return { num: parseInt(k,10), owed: owed[k] };
+    }).filter(function(x){ return x.owed > 0; });
+
+    list.sort(function(x, y){
+      if (y.owed !== x.owed) return y.owed - x.owed;
+      return nameOf(x.num).localeCompare(nameOf(y.num));
+    });
+
+    $("chaseNote").textContent = total
+      ? (total + " of " + TOTAL_LEGS + " legs outstanding · all done by " + DEADLINES[DEADLINES.length-1])
+      : "Group stage complete";
+
+    var host = $("chaseBody"); host.innerHTML = "";
+    if (!list.length){
+      var ok = document.createElement("div"); ok.className = "allclear";
+      ok.textContent = "Every group game played";
+      host.appendChild(ok);
+      return;
+    }
+    var worst = list[0].owed;
+    var grid = document.createElement("div"); grid.className = "chase";
+    list.forEach(function(x){
+      var card = document.createElement("div");
+      card.className = "owe" + (x.owed >= Math.max(6, worst) ? " hot" : (x.owed >= 4 ? " warm" : ""));
+      var nm = document.createElement("span"); nm.className = "nm"; nm.textContent = nameOf(x.num);
+      var n = document.createElement("span"); n.className = "n";
+      n.appendChild(document.createTextNode(x.owed));
+      var s = document.createElement("small"); s.textContent = x.owed === 1 ? "leg" : "legs";
+      n.appendChild(s);
+      card.appendChild(nm); card.appendChild(n);
+      grid.appendChild(card);
+    });
+    host.appendChild(grid);
+  }
+
+  /* ---------- records ---------- */
+
+  function longestStreak(form, ch){
+    var best = 0, run = 0;
+    form.forEach(function(f){ run = (f === ch) ? run + 1 : 0; if (run > best) best = run; });
+    return best;
+  }
+
+  function renderRecords(){
+    var sec = $("recSec");
+    if (!sec) return;
+    if (!result){ sec.hidden = true; return; }
+
+    var bigWin = null, highScore = null, mostGoals = null;
+    ties.forEach(function(t){
+      [t.i1, t.i2].forEach(function(i){
+        var s = legScore(S.r[i]); if (!s) return;
+        var margin = Math.abs(s[0] - s[1]), total = s[0] + s[1];
+        var wn = s[0] >= s[1] ? t.a : t.b, ln = s[0] >= s[1] ? t.b : t.a;
+        var hi = Math.max(s[0], s[1]);
+        if (!bigWin || margin > bigWin.margin) bigWin = { margin:margin, w:wn, l:ln, s:s, a:t.a, b:t.b };
+        if (!highScore || total > highScore.total) highScore = { total:total, s:s, a:t.a, b:t.b };
+        if (!mostGoals || hi > mostGoals.hi) mostGoals = { hi:hi, who:wn };
+      });
+    });
+
+    var st = stand(), all = st.A.concat(st.B);
+    var streak = null;
+    all.forEach(function(r){
+      var n = longestStreak(r.form, "W");
+      if (n > 1 && (!streak || n > streak.n)) streak = { n:n, name:r.name };
+    });
+
+    if (!bigWin){ sec.hidden = true; return; }
+    sec.hidden = false;
+
+    var host = $("recBody"); host.innerHTML = "";
+    function card(label, value, sub){
+      var d = document.createElement("div"); d.className = "rec";
+      var l = document.createElement("span"); l.className = "rl"; l.textContent = label;
+      var v = document.createElement("b"); v.textContent = value;
+      var s = document.createElement("span"); s.className = "rs"; s.textContent = sub;
+      d.appendChild(l); d.appendChild(v); d.appendChild(s);
+      host.appendChild(d);
+    }
+    card("Biggest hiding", bigWin.s[0] + "–" + bigWin.s[1],
+         nameOf(bigWin.a) + " v " + nameOf(bigWin.b) + " · " + bigWin.margin + " goal margin");
+    card("Wildest game", highScore.s[0] + "–" + highScore.s[1],
+         nameOf(highScore.a) + " v " + nameOf(highScore.b) + " · " + highScore.total + " goals");
+    card("Most in one leg", mostGoals.hi + "", nameOf(mostGoals.who));
+    card("Best run", streak ? (streak.n + " wins") : "—",
+         streak ? (streak.name + " on the bounce") : "nobody on a run yet");
+  }
+
+  /* ---------- golden boot ---------- */
+
+  function renderBoot(){
+    var sec = $("bootSec");
+    if (!result){ sec.hidden = true; return; }
+    var st = stand();
+    var all = st.A.concat(st.B).filter(function(r){ return r.p > 0; });
+    if (!all.length){ sec.hidden = true; return; }
+    sec.hidden = false;
+
+    function fill(host, rows, key, unit){
+      host.innerHTML = "";
+      rows.forEach(function(r, i){
+        var row = document.createElement("div"); row.className = "bootrow";
+        var rk = document.createElement("span"); rk.className = "r"; rk.textContent = (i+1);
+        var nm = document.createElement("span"); nm.className = "nm";
+        nm.appendChild(document.createTextNode(r.name));
+        var sub = document.createElement("em");
+        sub.textContent = r[key] + " in " + r.p + " game" + (r.p === 1 ? "" : "s");
+        nm.appendChild(sub);
+        var v = document.createElement("span"); v.className = "v";
+        v.appendChild(document.createTextNode((r[key] / r.p).toFixed(2)));
+        var u = document.createElement("small"); u.textContent = unit;
+        v.appendChild(u);
+        row.appendChild(rk); row.appendChild(nm); row.appendChild(v);
+        host.appendChild(row);
+      });
+    }
+
+    var scorers = all.slice().sort(function(x, y){
+      var a = y.gf / y.p - x.gf / x.p;
+      if (a) return a;
+      if (y.gf !== x.gf) return y.gf - x.gf;
+      return x.name.localeCompare(y.name);
+    }).slice(0, 5);
+
+    var leaky = all.slice().sort(function(x, y){
+      var a = y.ga / y.p - x.ga / x.p;
+      if (a) return a;
+      if (y.ga !== x.ga) return y.ga - x.ga;
+      return x.name.localeCompare(y.name);
+    }).slice(0, 5);
+
+    fill($("bootTop"), scorers, "gf", "scored / game");
+    fill($("bootBot"), leaky, "ga", "shipped / game");
   }
 
   /* ---------- verify + status ---------- */
@@ -1935,7 +2481,7 @@
   // Rebuilding those under the cursor is what used to eat half-typed scores.
   function renderScoreDependents(){
     standCache = null;
-    renderStatus(); renderResult(); renderLadder(); renderKO();
+    renderStatus(); renderResult(); renderLadder(); renderMine(); renderRecords(); renderBoot(); renderChase(); renderKO();
   }
 
   function typingInAScoreBox(){
@@ -1943,14 +2489,27 @@
     return !!(el && el.tagName === "INPUT" && el.type === "number");
   }
 
+  // The numbers grid is the main event on draw night and draw archaeology
+  // afterwards, so once the groups are out it drops down next to the draw check.
+  function placeClaimSec(){
+    var claim = $("claimSec"), verify = $("verifySec"), res = $("resultSec");
+    if (!claim || !verify || !res || !claim.parentNode) return;
+    var wantDown = !!(S.lk && result);
+    var isDown = claim.nextElementSibling === verify;
+    if (wantDown && !isDown) verify.parentNode.insertBefore(claim, verify);
+    else if (!wantDown && claim.nextElementSibling !== res) res.parentNode.insertBefore(claim, res);
+    $("claimTitle").textContent = wantDown ? "The numbers that were called" : "The numbers";
+  }
+
   function renderAll(){
     standCache = null; teamCache = {};
     if (S.lk && claimTotal() === PLAYERS){
       result = computeDraw(); buildTies();
     } else { result = null; ties = []; }
-    renderNames(); renderClubRule();
+    renderNames(); renderClubRule(); placeClaimSec();
     renderLive(); renderStatus(); renderGrid(); renderClaimBox();
-    renderResult(); renderLadder(); renderTeams(); renderFixtures(); renderKO(); renderVerify();
+    renderResult(); renderLadder(); renderMine(); renderRecords(); renderBoot(); renderChase();
+    renderTeams(); renderFixtures(); renderKO(); renderVerify();
     firstPaint = false;
   }
 
