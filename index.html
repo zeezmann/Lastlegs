@@ -922,7 +922,7 @@
 
   // Bumped every time this file changes. Shown in the footer so you can tell at
   // a glance whether the copy being served is the copy you uploaded.
-  var BUILD = "v18";
+  var BUILD = "v19";
 
   /* ============================================================ */
 
@@ -1148,10 +1148,9 @@
   }
 
   /* ---------- confetti ---------- */
-  var confettiCv = null, confettiRun = false;
-  function confetti(seconds){
+  var confettiCv = null, confettiRun = false, confettiBits = [];
+  function confetti(strength){
     if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    if (confettiRun) return;
     if (!confettiCv){
       confettiCv = document.createElement("canvas");
       confettiCv.id = "confetti";
@@ -1160,46 +1159,94 @@
     var cv = confettiCv, ctx = cv.getContext("2d");
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
     var W = window.innerWidth, H = window.innerHeight;
-    cv.width = W * dpr; cv.height = H * dpr;
+    if (cv.width !== W * dpr || cv.height !== H * dpr){
+      cv.width = W * dpr; cv.height = H * dpr;
+    }
     ctx.setTransform(dpr,0,0,dpr,0,0);
 
-    var cols = ["#7FA6FF","#E7C878","#EDF1FC","#5BD6A4","#9BB4E8"];
-    var bits = [];
-    var count = Math.round(Math.max(70, Math.min(170, W / 7)));  // lighter on phones
-    for (var i = 0; i < count; i++){
-      bits.push({
-        x: Math.random()*W,
-        y: -20 - Math.random()*H*0.6,
-        w: 6 + Math.random()*7,
-        h: 9 + Math.random()*11,
-        vy: 2.2 + Math.random()*3.6,
-        vx: -1.4 + Math.random()*2.8,
-        rot: Math.random()*Math.PI,
-        vr: -0.14 + Math.random()*0.28,
-        c: cols[(Math.random()*cols.length)|0]
-      });
+    // 6 is trophy-grade: heavier, and weighted toward gold.
+    var big = (strength || 4) >= 6;
+    var cols = big
+      ? ["#E7C878","#F2D98F","#FFF3D0","#EDF1FC","#C9A951","#7FA6FF"]
+      : ["#7FA6FF","#E7C878","#EDF1FC","#5BD6A4","#9BB4E8","#F2D98F"];
+
+    // Cannons, not snow. Particles are fired from the bottom corners and arc
+    // up and over, tumbling as they go, then fall away.
+    var phone = W < 620;
+    var per = Math.round((big ? 120 : 85) * (phone ? 0.55 : 1));
+
+    function fire(ox, oy, angle, spread, vel, count){
+      for (var i = 0; i < count; i++){
+        var a = (angle + (Math.random() - 0.5) * spread) * Math.PI / 180;
+        var v = vel * (0.45 + Math.random() * 0.55);
+        confettiBits.push({
+          x: ox, y: oy,
+          vx: Math.cos(a) * v,
+          vy: -Math.sin(a) * v,
+          drift: (Math.random() - 0.5) * 0.7,
+          gravity: 0.34 + Math.random() * 0.22,
+          decay: 0.955 + Math.random() * 0.02,
+          wobble: Math.random() * Math.PI * 2,
+          wobbleSpeed: 0.06 + Math.random() * 0.08,
+          tilt: Math.random() * Math.PI * 2,
+          tiltSpeed: 0.07 + Math.random() * 0.14,
+          size: (phone ? 6 : 8) + Math.random() * (big ? 7 : 5),
+          round: Math.random() < 0.34,
+          col: cols[(Math.random() * cols.length) | 0],
+          tick: 0,
+          life: 150 + Math.random() * 90
+        });
+      }
     }
+
+    function volley(){
+      fire(0,     H * 0.97,  62, 52, 33, per);        // bottom-left cannon
+      fire(W,     H * 0.97, 118, 52, 33, per);        // bottom-right cannon
+      if (big) fire(W / 2, H * 0.72, 90, 130, 26, Math.round(per * 0.7));
+    }
+
+    volley();
+    if (big){ setTimeout(volley, 260); setTimeout(volley, 560); }
+    else if ((strength || 4) >= 5) setTimeout(volley, 300);
+
+    if (confettiRun) return;                 // a run is already painting
     confettiRun = true;
-    var stop = Date.now() + (seconds || 4) * 1000;
+
     (function frame(){
-      ctx.clearRect(0,0,W,H);
+      ctx.clearRect(0, 0, W, H);
       var alive = 0;
-      for (var i = 0; i < bits.length; i++){
-        var b = bits[i];
-        b.x += b.vx; b.y += b.vy; b.rot += b.vr; b.vy += 0.035;
-        if (b.y < H + 40) alive++;
+      for (var i = confettiBits.length - 1; i >= 0; i--){
+        var b = confettiBits[i];
+        b.tick++;
+        b.vx *= b.decay;
+        b.vy = b.vy * b.decay + b.gravity;
+        b.x += b.vx + b.drift;
+        b.y += b.vy;
+        b.wobble += b.wobbleSpeed;
+        b.tilt += b.tiltSpeed;
+
+        var prog = b.tick / b.life;
+        if (prog >= 1 || b.y > H + 60){ confettiBits.splice(i, 1); continue; }
+        alive++;
+
         ctx.save();
-        ctx.translate(b.x, b.y); ctx.rotate(b.rot);
-        ctx.fillStyle = b.c;
-        ctx.fillRect(-b.w/2, -b.h/2, b.w, b.h);
+        ctx.globalAlpha = prog > 0.72 ? (1 - (prog - 0.72) / 0.28) : 1;
+        ctx.translate(b.x, b.y);
+        ctx.rotate(b.wobble);
+        // squashing on one axis is what reads as a piece of paper tumbling
+        ctx.scale(1, Math.max(0.12, Math.abs(Math.cos(b.tilt))));
+        ctx.fillStyle = b.col;
+        if (b.round){
+          ctx.beginPath();
+          ctx.arc(0, 0, b.size / 2, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.fillRect(-b.size / 2, -b.size / 2, b.size, b.size * 1.25);
+        }
         ctx.restore();
       }
-      if (alive && Date.now() < stop + 2500){
-        requestAnimationFrame(frame);
-      } else {
-        ctx.clearRect(0,0,W,H);
-        confettiRun = false;
-      }
+      if (alive) requestAnimationFrame(frame);
+      else { ctx.clearRect(0, 0, W, H); confettiRun = false; }
     })();
   }
 
