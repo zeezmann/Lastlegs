@@ -310,7 +310,31 @@
   .myrow .ms b.loss{color:var(--live)}
   .myrow .ms b.draw{color:var(--muted)}
   .myrow .ms .topl{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
-  @media (max-width:760px){ .mstats{grid-template-columns:repeat(2,1fr)} .recs{grid-template-columns:repeat(2,1fr)} }
+  .mnext.nem{border-left-color:var(--live)}
+  .mnext.nem .lbl{color:var(--live)}
+
+  /* movement since the viewer last looked */
+  .mv{display:inline-block;margin-left:5px;font-family:var(--mono);font-size:9.5px;font-weight:700;vertical-align:top}
+  .mv.up{color:var(--go)}
+  .mv.down{color:var(--live)}
+
+  /* projected brackets */
+  .projlead{color:var(--muted);max-width:60ch;margin:0 0 16px;font-size:15.5px;line-height:1.55}
+  .projs{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .proj{border-top:3px solid var(--star)}
+  .proj.plate{border-top-color:var(--gold)}
+  .proj h3{font-family:var(--display);font-size:17px;text-transform:uppercase;letter-spacing:.05em;margin:0 0 14px;color:var(--star)}
+  .proj.plate h3{color:var(--gold)}
+  .pj{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;
+      padding:11px 0;border-top:1px solid var(--line-soft)}
+  .pj:first-of-type{border-top:0}
+  .pjs{display:flex;align-items:baseline;gap:8px;min-width:0}
+  .pj > .pjs:last-child{justify-content:flex-end;text-align:right}
+  .pjs i{font-style:normal;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--dim);flex:none}
+  .pjs b{font-family:var(--display);font-size:18px;font-weight:600;color:var(--text);
+         overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pjv{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+  @media (max-width:760px){ .mstats{grid-template-columns:repeat(2,1fr)} .recs{grid-template-columns:repeat(2,1fr)} .projs{grid-template-columns:1fr} }
 
   /* why a level row sits where it does */
   /* Wraps and is width-capped, otherwise nowrap on the player cell drags the
@@ -629,7 +653,20 @@
       </div>
       <div class="mstats" id="mineStat"></div>
       <div class="mnext" id="mineNext" hidden></div>
+      <div class="mnext nem" id="mineNem" hidden></div>
       <div class="pace" id="minePace"></div>
+    </div>
+  </section>
+
+  <section id="projSec" hidden>
+    <div class="sec-head">
+      <h2>As it stands</h2>
+      <span class="sec-note" id="projNote"></span>
+    </div>
+    <p class="projlead">If the group stage ended right now, this is who'd draw who. It moves every time a result goes in.</p>
+    <div class="projs">
+      <div class="panel proj" id="projCup"></div>
+      <div class="panel proj plate" id="projSpoon"></div>
     </div>
   </section>
 
@@ -800,7 +837,7 @@
 
   // Bumped every time this file changes. Shown in the footer so you can tell at
   // a glance whether the copy being served is the copy you uploaded.
-  var BUILD = "v13";
+  var BUILD = "v14";
 
   /* ============================================================ */
 
@@ -881,6 +918,18 @@
   function saveFilter(v){
     try { localStorage.setItem(FILTER_KEY, v === null ? "" : v); } catch(e){}
   }
+
+  // Movement since this viewer last opened the page. Their own browser only -
+  // never shared, never written to the tournament data.
+  var MOVE_KEY = "fifacup.lastSeen";
+  function loadSeen(){
+    try { var v = JSON.parse(localStorage.getItem(MOVE_KEY) || "null");
+          return (v && v.pos) ? v.pos : null; } catch(e){ return null; }
+  }
+  function saveSeen(pos){
+    try { localStorage.setItem(MOVE_KEY, JSON.stringify({ ts: Date.now(), pos: pos })); } catch(e){}
+  }
+  var seenPos = loadSeen(), seenSaved = false;
 
   var freshTile = 0, selectedTile = null, filter = loadFilter(), statusFilter = "all";
   var result = null, ties = [], standCache = null, teamCache = {};
@@ -1529,8 +1578,14 @@
     rows.forEach(function(r, i){
       var tr = document.createElement("tr");
       tr.className = "hidden" + (i < 4 ? " qual" : "");
+      var mv = "";
+      if (seenPos && typeof seenPos[r.num] === "number" && seenPos[r.num] !== (i+1)){
+        var d = seenPos[r.num] - (i+1);
+        mv = '<span class="mv ' + (d > 0 ? "up" : "down") + '">' +
+             (d > 0 ? "▲" : "▼") + Math.abs(d) + '</span>';
+      }
       tr.innerHTML =
-        '<td class="pos">' + (i+1) + '</td>' +
+        '<td class="pos">' + (i+1) + mv + '</td>' +
         '<td class="badge-c"><span class="badge">' + r.num + '</span></td>' +
         '<td class="player"></td><td>' + r.p + '</td>' +
         '<td class="opt">' + r.w + '</td><td class="opt">' + r.d + '</td><td class="opt">' + r.l + '</td>' +
@@ -2199,6 +2254,32 @@
       nx.hidden = false;
     } else { nx.hidden = true; }
 
+    // Nemesis: whoever's done the most damage to you. Legs lost first, then
+    // aggregate goal difference across the tie.
+    var nem = null;
+    legs.forEach(function(l){
+      if (!l.played) return;
+      var lost = 0, gf = 0, ga = 0;
+      [l.s1, l.s2].forEach(function(s){
+        var me = l.home ? s[0] : s[1], them = l.home ? s[1] : s[0];
+        gf += me; ga += them;
+        if (me < them) lost++;
+      });
+      if (!lost) return;
+      var cand = { opp:l.opp, lost:lost, gf:gf, ga:ga, gd:gf-ga };
+      if (!nem || cand.lost > nem.lost || (cand.lost === nem.lost && cand.gd < nem.gd)) nem = cand;
+    });
+    var nemEl = $("mineNem");
+    if (nem){
+      nemEl.hidden = false;
+      nemEl.innerHTML = '<span class="lbl">Nemesis</span><b></b><em></em>';
+      nemEl.querySelector("b").textContent = nameOf(nem.opp);
+      nemEl.querySelector("em").textContent =
+        (nem.lost === 2 ? "lost both legs" : "lost one of two") + " · " + nem.gf + "–" + nem.ga + " on aggregate";
+    } else {
+      nemEl.hidden = true;
+    }
+
     var target = paceTarget(), pace = $("minePace"), dl = daysLeft();
     if (!left){
       pace.className = "pace good";
@@ -2267,6 +2348,44 @@
     host.appendChild(grid);
   }
 
+  /* ---------- how the brackets would fall right now ---------- */
+
+  function renderProjection(){
+    var sec = $("projSec");
+    if (!sec) return;
+    // Once the group stage is done the real brackets take over.
+    if (!result || !playedCount() || groupsComplete()){ sec.hidden = true; return; }
+    sec.hidden = false;
+
+    var st = stand();
+    $("projNote").textContent = playedCount() + " of " + TOTAL_LEGS + " played · this will move";
+
+    function side(hostId, title, offset, cls){
+      var host = $(hostId); host.innerHTML = "";
+      var head = document.createElement("h3"); head.textContent = title;
+      host.appendChild(head);
+      // Cross-group quarters: A1-B4, A3-B2, A2-B3, A4-B1 (offset 4 for the Spoon)
+      [[0,3],[2,1],[1,2],[3,0]].forEach(function(pair, i){
+        var a = st.A[pair[0] + offset], bteam = st.B[pair[1] + offset];
+        var row = document.createElement("div"); row.className = "pj";
+        function seat(r, letter, slot){
+          var s = document.createElement("span"); s.className = "pjs";
+          var tag = document.createElement("i"); tag.textContent = letter + slot;
+          var nm = document.createElement("b"); nm.textContent = r ? r.name : "—";
+          s.appendChild(tag); s.appendChild(nm);
+          return s;
+        }
+        row.appendChild(seat(a, "A", pair[0] + offset + 1));
+        var v = document.createElement("span"); v.className = "pjv"; v.textContent = "v";
+        row.appendChild(v);
+        row.appendChild(seat(bteam, "B", pair[1] + offset + 1));
+        host.appendChild(row);
+      });
+    }
+    side("projCup", CUP_NAME + " quarter-finals", 0, "");
+    side("projSpoon", SPOON_NAME + " quarter-finals", 4, "plate");
+  }
+
   /* ---------- records ---------- */
 
   function longestStreak(form, ch){
@@ -2312,7 +2431,7 @@
       d.appendChild(l); d.appendChild(v); d.appendChild(s);
       host.appendChild(d);
     }
-    card("Biggest hiding", bigWin.s[0] + "–" + bigWin.s[1],
+    card("Biggest hammering", bigWin.s[0] + "–" + bigWin.s[1],
          nameOf(bigWin.a) + " v " + nameOf(bigWin.b) + " · " + bigWin.margin + " goal margin");
     card("Wildest game", highScore.s[0] + "–" + highScore.s[1],
          nameOf(highScore.a) + " v " + nameOf(highScore.b) + " · " + highScore.total + " goals");
@@ -2481,7 +2600,7 @@
   // Rebuilding those under the cursor is what used to eat half-typed scores.
   function renderScoreDependents(){
     standCache = null;
-    renderStatus(); renderResult(); renderLadder(); renderMine(); renderRecords(); renderBoot(); renderChase(); renderKO();
+    renderStatus(); renderResult(); renderLadder(); renderMine(); renderProjection(); renderRecords(); renderBoot(); renderChase(); renderKO(); stampSeen();
   }
 
   function typingInAScoreBox(){
@@ -2501,6 +2620,18 @@
     $("claimTitle").textContent = wantDown ? "The numbers that were called" : "The numbers";
   }
 
+  // Snapshot where everyone stands, once per page load, so the arrows compare
+  // against the viewer's LAST visit rather than their last render.
+  function stampSeen(){
+    if (seenSaved || !result || !playedCount()) return;
+    var st = stand(), pos = {};
+    ["A","B"].forEach(function(g){
+      st[g].forEach(function(r, i){ pos[r.num] = i + 1; });
+    });
+    saveSeen(pos);
+    seenSaved = true;
+  }
+
   function renderAll(){
     standCache = null; teamCache = {};
     if (S.lk && claimTotal() === PLAYERS){
@@ -2508,8 +2639,9 @@
     } else { result = null; ties = []; }
     renderNames(); renderClubRule(); placeClaimSec();
     renderLive(); renderStatus(); renderGrid(); renderClaimBox();
-    renderResult(); renderLadder(); renderMine(); renderRecords(); renderBoot(); renderChase();
+    renderResult(); renderLadder(); renderMine(); renderProjection(); renderRecords(); renderBoot(); renderChase();
     renderTeams(); renderFixtures(); renderKO(); renderVerify();
+    stampSeen();
     firstPaint = false;
   }
 
