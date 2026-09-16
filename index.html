@@ -378,12 +378,9 @@
        white-space:normal;max-width:19ch;line-height:1.35}
 
   /* chase list — promoted to the top of the page, deliberately loud */
-  #chaseSec{margin-top:30px;padding:24px;border:1px solid var(--live);border-left:5px solid var(--live);
-            background:linear-gradient(180deg,rgba(255,122,133,.10),rgba(255,122,133,0) 72%)}
-  #chaseSec h2{color:var(--live)}
-  #chaseSec.clear{border-color:var(--go);border-left-color:var(--go);
-                  background:linear-gradient(180deg,rgba(91,214,164,.10),rgba(91,214,164,0) 72%)}
-  #chaseSec.clear h2{color:var(--go)}
+  #chaseSec{margin-top:30px;padding:24px;border:1px solid var(--line);border-left:4px solid var(--gold);
+            background:linear-gradient(180deg,rgba(231,200,120,.055),rgba(231,200,120,0) 70%)}
+  #chaseSec h2{color:var(--gold)}
   .chasetop{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:20px}
   .chasetop .big{font-family:var(--display);font-size:56px;line-height:.85;font-weight:700;color:var(--live)}
   .chasetop .big small{display:block;font-family:var(--mono);font-size:10.5px;font-weight:500;
@@ -394,12 +391,12 @@
   .pairs{display:grid;gap:8px;margin-bottom:24px}
   .pair{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 15px;
         background:var(--surface);border:1px solid var(--line-soft);border-left:3px solid var(--live)}
-  .pair.one{border-left-color:var(--gold)}
+  .pair.one{border-left-color:var(--star-dim)}
   .pair .who{font-family:var(--display);font-size:19px;font-weight:600;letter-spacing:.02em;color:var(--text)}
   .pair .who i{font-style:normal;font-family:var(--body);font-size:14px;color:var(--dim);padding:0 9px}
   .pair .legs{font-family:var(--mono);font-size:11px;letter-spacing:.11em;text-transform:uppercase;
               color:var(--muted);white-space:nowrap}
-  .pair.one .legs{color:var(--gold)}
+  .pair.one .legs{color:var(--dim)}
   @media (max-width:560px){
     .chasetop .big{font-size:44px}
     .pair{flex-direction:column;align-items:flex-start;gap:5px}
@@ -711,9 +708,9 @@
           <em id="bLeadSub"></em>
         </div>
         <div class="btile">
-          <span class="bl">Deadline</span>
+          <span class="bl" id="bDaysLab">Time left</span>
           <b id="bDays">—</b>
-          <em id="bDaysSub">Sat 19 Sept</em>
+          <em id="bDaysSub">Till FC 27</em>
         </div>
         <div class="btile" id="bThird">
           <span class="bl" id="bThirdLab">Finals</span>
@@ -893,7 +890,7 @@
           <li><span class="k">Clubs</span><span id="clubRule"></span></li>
           <li><span class="k">Groups</span><span><b>Two groups of eight.</b> Home and away, so 14 games each. Nobody gets a bye and both groups play the same number of games.</span></li>
           <li><span class="k">Format</span><span><b>Both legs back to back, one sitting.</b> It's all online &mdash; nobody's going anywhere. "Home and away" just means who hosts the lobby: first name listed hosts leg one, the other hosts leg two. Both results count separately in the table.</span></li>
-          <li><span class="k">Match length</span><span><b>6 minutes.</b> Set it in the match settings before kick-off &mdash; that's the whole game, not per half. A double-header runs about 15 minutes with menus.</span></li>
+          <li><span class="k">Match length</span><span><b>6 minutes per half.</b> Set the half length in match settings before kick-off. A double-header runs about half an hour with menus.</span></li>
           <li><span class="k">Timing</span><span>You and your opponent agree when. Just don't blow the matchday deadline.</span></li>
           <li><span class="k">Hosting</span><span>Whoever hosts picks the stadium and wears the home kit. That's the only thing home advantage means here.</span></li>
           <li><span class="k">Missed</span><span><b>Both legs lost 3&ndash;0.</b> Past the deadline with no game played, that's the result. No appeals.</span></li>
@@ -953,7 +950,7 @@
 
   // Bumped every time this file changes. Shown in the footer so you can tell at
   // a glance whether the copy being served is the copy you uploaded.
-  var BUILD = "v20";
+  var BUILD = "v22";
 
   /* ============================================================ */
 
@@ -976,6 +973,10 @@
     return Math.min(done * 2, 14);
   }
   var FINALS_DATE = "2026-09-24";        // both finals done by here
+  // FC 27 early access. This is the real deadline now - once it lands
+  // nobody is coming back to finish an FC 26 tournament.
+  var FC27_DATE  = "2026-09-18";
+  var FC27_LABEL = "Fri 18 Sept";
   function daysTo(iso){
     return Math.ceil((endOfDay(iso) - Date.now()) / 86400000);
   }
@@ -2470,8 +2471,12 @@
   function renderChase(){
     var sec = $("chaseSec");
     if (!result){ sec.hidden = true; return; }
-    sec.hidden = false;
     if (groupsComplete() && !firstPaint) milestone("groupsDone", 6);
+    // The panel exists to chase outstanding group games. The moment the last
+    // one lands it has done its job, so it gets out of the way completely
+    // rather than sitting at the top of the page as a green trophy.
+    if (groupsComplete()){ sec.hidden = true; return; }
+    sec.hidden = false;
 
     var owed = {}, total = 0;
     result.groupA.concat(result.groupB).forEach(function(n){ owed[n] = 0; });
@@ -2491,8 +2496,6 @@
       return nameOf(x.num).localeCompare(nameOf(y.num));
     });
 
-    sec.className = total ? "" : "clear";
-
     // Which exact ties are still outstanding, so people can chase each other
     // instead of waiting on the gaffer to chase all sixteen of them.
     var pairs = [];
@@ -2506,9 +2509,10 @@
       return nameOf(x.a).localeCompare(nameOf(y.a));
     });
 
-    $("chaseNote").textContent = total
-      ? ("Deadline " + DEADLINES[DEADLINES.length-1])
-      : "Group stage complete";
+    var dleft = daysTo(FC27_DATE);
+    $("chaseNote").textContent = dleft > 1
+      ? (dleft + " days till FC 27")
+      : (dleft === 1 ? "FC 27 lands tomorrow" : (dleft === 0 ? "FC 27 lands today" : "FC 27 is out"));
 
     var top = $("chaseTop"); top.innerHTML = "";
     var pbox = $("chasePairs"); pbox.innerHTML = "";
@@ -2741,9 +2745,7 @@
       return;
     }
     bar.className = "livebar on";
-    txt.textContent = isAdmin
-      ? "Live - everything you do here lands on everyone's screen instantly"
-      : "Live - this page updates itself as it happens. No need to refresh";
+    txt.textContent = "Live";
     tag.textContent = isAdmin ? "Gaffer" : "Watching";
   }
 
@@ -2774,6 +2776,25 @@
   }
 
   // Live scoreboard in the hero: how far through we are, who's top, how long left.
+  // The lede is the most valuable paragraph on the page, so it says whatever
+  // is true right now rather than re-arguing a draw that happened weeks ago.
+  function kickerLine(){
+    var champ = result ? tieState("cup", CUP_DEF.length - 1).winner : null;
+    var spoon = result ? tieState("spoon", SPOON_DEF.length - 1).winner : null;
+    if (champ){
+      return champ + " is champion" + (spoon ? ". " + spoon + " takes the wooden spoon" : "")
+           + ". That's FC 26 done.";
+    }
+    if (result && groupsComplete()){
+      return "Group stage done. Every tie from here is two legs. Level on aggregate and the "
+           + "higher group finisher goes through \u2014 no penalties, no third leg, no away goals. "
+           + "One trophy, one wooden spoon, no second chances.";
+    }
+    return "Two groups of eight, everyone plays everyone home and away. Top four in each group "
+         + "go through to " + CUP_NAME + ". Bottom four drop into " + SPOON_NAME + ". "
+         + "There's no hiding place \u2014 everybody ends up in one bracket or the other.";
+  }
+
   function renderBoard(){
     var board = $("board");
     if (!board) return;
@@ -2830,18 +2851,19 @@
     var tile = $("bDays"), sub = $("bDaysSub"), dl;
     tile.classList.remove("late");
     if (champ){
+      $("bDaysLab").textContent = "Wrapped";
       tile.textContent = "Done";
       sub.textContent = "Tournament complete";
-    } else if (groupsIn){
-      dl = daysTo(FINALS_DATE);
-      tile.textContent = dl > 1 ? (dl + " days") : (dl === 1 ? "1 day" : (dl === 0 ? "Today" : "Overdue"));
-      if (dl < 0) tile.classList.add("late");
-      sub.textContent = "Both finals by Thu 24 Sept";
     } else {
-      dl = daysLeft();
-      tile.textContent = dl > 1 ? (dl + " days") : (dl === 1 ? "1 day" : (dl === 0 ? "Today" : "Overdue"));
-      if (dl < 0) tile.classList.add("late");
-      sub.textContent = dl < 0 ? "Group stage should be done" : "All 112 by Sat 19 Sept";
+      // Everything now paces off FC 27, because that is when this tournament
+      // stops having anyone's attention whether it is finished or not.
+      dl = daysTo(FC27_DATE);
+      tile.textContent = dl > 1 ? (dl + " days") : (dl === 1 ? "1 day" : (dl === 0 ? "Today" : "Overtime"));
+      if (dl <= 1) tile.classList.add("late");
+      sub.textContent = dl < 0
+        ? "FC 27 is out \u2014 let's finish"
+        : ("Till FC 27 \u00b7 " + FC27_LABEL);
+      $("bDaysLab").textContent = dl < 0 ? "Running late" : "Time left";
     }
 
     // Third tile becomes the champion once there is one.
@@ -2852,11 +2874,16 @@
       t3v.textContent = champ;
       var cc = clubOf(numOf(champ), "g");
       t3s.textContent = cc ? ("Champion · " + cc) : "Champion";
+    } else if (groupsIn){
+      t3.classList.remove("lead");
+      $("bThirdLab").textContent = "Stage";
+      t3v.textContent = "Knockouts";
+      t3s.textContent = "Two legs \u00b7 aggregate";
     } else {
       t3.classList.remove("lead");
-      $("bThirdLab").textContent = "Finals";
-      t3v.textContent = "Thu 24";
-      t3s.textContent = "Both trophies";
+      $("bThirdLab").textContent = "Up for grabs";
+      t3v.textContent = "Top 4";
+      t3s.textContent = "Each group \u00b7 into the Cup";
     }
   }
 
@@ -2888,7 +2915,7 @@
       btn.hidden = true;
       $("claimNote").textContent = "Locked in";
       $("drawNote").textContent = pl ? "Table updates as scores go in" : "Groups are final";
-      $("kicker").textContent = "One last tournament before FC 27 buries this one on 25 September. The groups below fell out of the numbers everyone called - nobody picked them. Play your ties in any order, whenever you and your opponent are both free.";
+      $("kicker").textContent = kickerLine();
     } else {
       btn.hidden = !isAdmin;
       $("claimNote").textContent = isAdmin ? "Tap them in as they're called" : "Filling live";
