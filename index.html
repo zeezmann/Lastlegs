@@ -377,6 +377,35 @@
        text-transform:uppercase;color:var(--dim);margin-top:4px;font-weight:500;
        white-space:normal;max-width:19ch;line-height:1.35}
 
+  /* chase list — promoted to the top of the page, deliberately loud */
+  #chaseSec{margin-top:30px;padding:24px;border:1px solid var(--live);border-left:5px solid var(--live);
+            background:linear-gradient(180deg,rgba(255,122,133,.10),rgba(255,122,133,0) 72%)}
+  #chaseSec h2{color:var(--live)}
+  #chaseSec.clear{border-color:var(--go);border-left-color:var(--go);
+                  background:linear-gradient(180deg,rgba(91,214,164,.10),rgba(91,214,164,0) 72%)}
+  #chaseSec.clear h2{color:var(--go)}
+  .chasetop{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:20px}
+  .chasetop .big{font-family:var(--display);font-size:56px;line-height:.85;font-weight:700;color:var(--live)}
+  .chasetop .big small{display:block;font-family:var(--mono);font-size:10.5px;font-weight:500;
+                       letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-top:7px}
+  .chasetop .cap{font-family:var(--body);font-size:16.5px;line-height:1.45;color:var(--muted);max-width:46ch}
+  .chasesub{font-family:var(--mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+            color:var(--dim);margin:0 0 11px}
+  .pairs{display:grid;gap:8px;margin-bottom:24px}
+  .pair{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 15px;
+        background:var(--surface);border:1px solid var(--line-soft);border-left:3px solid var(--live)}
+  .pair.one{border-left-color:var(--gold)}
+  .pair .who{font-family:var(--display);font-size:19px;font-weight:600;letter-spacing:.02em;color:var(--text)}
+  .pair .who i{font-style:normal;font-family:var(--body);font-size:14px;color:var(--dim);padding:0 9px}
+  .pair .legs{font-family:var(--mono);font-size:11px;letter-spacing:.11em;text-transform:uppercase;
+              color:var(--muted);white-space:nowrap}
+  .pair.one .legs{color:var(--gold)}
+  @media (max-width:560px){
+    .chasetop .big{font-size:44px}
+    .pair{flex-direction:column;align-items:flex-start;gap:5px}
+    .pair .who{font-size:17px}
+  }
+
   /* chase list */
   .chase{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
   .owe{display:flex;align-items:center;justify-content:space-between;gap:10px;
@@ -656,6 +685,16 @@
 
     <div id="setupBox"></div>
 
+    <section id="chaseSec" hidden>
+      <div class="sec-head">
+        <h2>Still to play</h2>
+        <span class="sec-note" id="chaseNote"></span>
+      </div>
+      <div class="chasetop" id="chaseTop"></div>
+      <div id="chasePairs"></div>
+      <div id="chaseBody"></div>
+    </section>
+
     <div class="board" id="board" hidden>
       <div class="bprog">
         <div class="bptop">
@@ -769,14 +808,6 @@
       <div class="panel boot"><h3>Golden Boot</h3><div id="bootTop"></div></div>
       <div class="panel boot leaky"><h3>Leakiest defence</h3><div id="bootBot"></div></div>
     </div>
-  </section>
-
-  <section id="chaseSec" hidden>
-    <div class="sec-head">
-      <h2>Still to play</h2>
-      <span class="sec-note" id="chaseNote"></span>
-    </div>
-    <div id="chaseBody"></div>
   </section>
 
   <section id="teamSec" hidden>
@@ -922,7 +953,7 @@
 
   // Bumped every time this file changes. Shown in the footer so you can tell at
   // a glance whether the copy being served is the copy you uploaded.
-  var BUILD = "v19";
+  var BUILD = "v20";
 
   /* ============================================================ */
 
@@ -2460,17 +2491,68 @@
       return nameOf(x.num).localeCompare(nameOf(y.num));
     });
 
+    sec.className = total ? "" : "clear";
+
+    // Which exact ties are still outstanding, so people can chase each other
+    // instead of waiting on the gaffer to chase all sixteen of them.
+    var pairs = [];
+    ties.forEach(function(t){
+      var left = 0;
+      [t.i1, t.i2].forEach(function(i){ if (!legScore(S.r[i])) left++; });
+      if (left) pairs.push({ a:t.a, b:t.b, left:left });
+    });
+    pairs.sort(function(x, y){
+      if (y.left !== x.left) return y.left - x.left;
+      return nameOf(x.a).localeCompare(nameOf(y.a));
+    });
+
     $("chaseNote").textContent = total
-      ? (total + " of " + TOTAL_LEGS + " legs outstanding · all done by " + DEADLINES[DEADLINES.length-1])
+      ? ("Deadline " + DEADLINES[DEADLINES.length-1])
       : "Group stage complete";
 
+    var top = $("chaseTop"); top.innerHTML = "";
+    var pbox = $("chasePairs"); pbox.innerHTML = "";
     var host = $("chaseBody"); host.innerHTML = "";
+
     if (!list.length){
       var ok = document.createElement("div"); ok.className = "allclear";
       ok.textContent = "Every group game played";
       host.appendChild(ok);
       return;
     }
+
+    var big = document.createElement("span"); big.className = "big";
+    big.appendChild(document.createTextNode(total));
+    var bs = document.createElement("small");
+    bs.textContent = (total === 1 ? "game" : "games") + " left to play";
+    big.appendChild(bs);
+    var cap = document.createElement("span"); cap.className = "cap";
+    cap.textContent = "These are the only games standing between us and the knockouts. "
+      + "Find your name, message the other fella, get it played.";
+    top.appendChild(big); top.appendChild(cap);
+
+    var ph = document.createElement("p"); ph.className = "chasesub";
+    ph.textContent = "Who owes who";
+    pbox.appendChild(ph);
+    var pg = document.createElement("div"); pg.className = "pairs";
+    pairs.forEach(function(x){
+      var row = document.createElement("div");
+      row.className = "pair" + (x.left === 1 ? " one" : "");
+      var who = document.createElement("span"); who.className = "who";
+      who.appendChild(document.createTextNode(nameOf(x.a)));
+      var v = document.createElement("i"); v.textContent = "still to play";
+      who.appendChild(v);
+      who.appendChild(document.createTextNode(nameOf(x.b)));
+      var lg = document.createElement("span"); lg.className = "legs";
+      lg.textContent = x.left === 1 ? "1 leg left" : "both legs";
+      row.appendChild(who); row.appendChild(lg);
+      pg.appendChild(row);
+    });
+    pbox.appendChild(pg);
+
+    var gh = document.createElement("p"); gh.className = "chasesub";
+    gh.textContent = "Games owed, per player";
+    host.appendChild(gh);
     var worst = list[0].owed;
     var grid = document.createElement("div"); grid.className = "chase";
     list.forEach(function(x){
