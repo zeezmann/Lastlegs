@@ -1005,7 +1005,7 @@
 
   // Bumped every time this file changes. Shown in the footer so you can tell at
   // a glance whether the copy being served is the copy you uploaded.
-  var BUILD = "v31";
+  var BUILD = "v32";
 
   /* ============================================================ */
 
@@ -2714,8 +2714,9 @@
     var done  = drawState && drawState.done;
     var now   = Date.now();
     // Before the doors open it is an announcement, not a button - there is
-    // nothing to watch yet and a dead link is worse than a heads-up.
-    var soon  = !done && now < DRAW_OPENS;
+    // nothing to watch yet and a dead link is worse than a heads-up. The
+    // gaffer is the exception: he has to be able to get in and rehearse.
+    var soon  = !done && !isAdmin && now < DRAW_OPENS;
     bar.classList.toggle("soon", soon);
     bar.disabled = soon;
 
