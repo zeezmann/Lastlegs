@@ -1031,7 +1031,7 @@
 
   // Bumped every time this file changes. Shown in the footer so you can tell at
   // a glance whether the copy being served is the copy you uploaded.
-  var BUILD = "v36";
+  var BUILD = "v37";
 
   /* ============================================================ */
 
@@ -3396,7 +3396,17 @@
   var _db = $("drawBar");
   if (_db) _db.onclick = function(){ if (!_db.classList.contains("soon")) openDraw(); };
   setInterval(function(){ if (!drawOpen) renderDraw(); }, 30000);
-  var _dc = $("drawClose"); if (_dc) _dc.onclick = closeDraw;
+
+  // The overlay lives at the very end of the document, after this script, so
+  // binding straight to the button here would find nothing. Listen on the
+  // document instead - that works whatever order the page is assembled in.
+  document.addEventListener("click", function(e){
+    var t = e.target;
+    while (t && t !== document.body){
+      if (t.id === "drawClose"){ closeDraw(); return; }
+      t = t.parentNode;
+    }
+  });
   document.addEventListener("keydown", function(e){
     if (e.key === "Escape" && drawOpen) closeDraw();
   });
