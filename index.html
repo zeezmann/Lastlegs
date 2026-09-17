@@ -871,7 +871,7 @@
   <section id="recSec" hidden>
     <div class="sec-head">
       <h2>Records &amp; goals</h2>
-      <span class="sec-note">The tournament so far</span>
+      <span class="sec-note" id="recNote">The tournament so far</span>
     </div>
     <div class="recs" id="recBody"></div>
     <div class="boots" id="bootSec" hidden>
@@ -1031,7 +1031,7 @@
 
   // Bumped every time this file changes. Shown in the footer so you can tell at
   // a glance whether the copy being served is the copy you uploaded.
-  var BUILD = "v37";
+  var BUILD = "v38";
 
   /* ============================================================ */
 
@@ -2938,25 +2938,82 @@
     return best;
   }
 
+  /* ---------- everything played, groups and knockouts together ---------- */
+
+  // Every knockout leg with a score on it, in the order they were played,
+  // with the two players resolved. Read-only, same as everything else.
+  function koLegs(){
+    var out = [];
+    ["cup","spoon"].forEach(function(comp){
+      var cd = compData(comp);
+      for (var i = 0; i < cd.def.length; i++){
+        var st = tieState(comp, i);
+        if (!st.a.name || !st.b.name) continue;
+        [st.l1, st.l2].forEach(function(sc, k){
+          if (!sc) return;
+          var an = numOf(st.a.name), bn = numOf(st.b.name);
+          if (!an || !bn) return;
+          out.push({ round: st.def.round, idx: i, leg: k, a: an, b: bn, s: sc });
+        });
+      }
+    });
+    out.sort(function(x, y){
+      return (x.round - y.round) || (x.idx - y.idx) || (x.leg - y.leg);
+    });
+    return out;
+  }
+
+  // Group record plus knockout record, per player. The Golden Boot is a
+  // per-game average, so it stays fair even though the lads who go deep
+  // play more football than the ones knocked out early.
+  var fullCache = null;
+  function fullTally(){
+    if (fullCache) return fullCache;
+    var st = stand(), rows = {};
+    st.A.concat(st.B).forEach(function(r){
+      rows[r.num] = { num:r.num, name:r.name, p:r.p, gf:r.gf, ga:r.ga,
+                      form:r.form.slice(), ko:0 };
+    });
+    koLegs().forEach(function(L){
+      var A = rows[L.a], B = rows[L.b];
+      if (!A || !B) return;
+      A.p++; B.p++; A.ko++; B.ko++;
+      A.gf += L.s[0]; A.ga += L.s[1];
+      B.gf += L.s[1]; B.ga += L.s[0];
+      if (L.s[0] > L.s[1]){ A.form.push("W"); B.form.push("L"); }
+      else if (L.s[0] < L.s[1]){ A.form.push("L"); B.form.push("W"); }
+      else { A.form.push("D"); B.form.push("D"); }
+    });
+    fullCache = Object.keys(rows).map(function(k){ return rows[k]; });
+    return fullCache;
+  }
+
   function renderRecords(){
     var sec = $("recSec");
     if (!sec) return;
     if (!result){ sec.hidden = true; return; }
 
     var bigWin = null, highScore = null, mostGoals = null;
+    var every = [];
     ties.forEach(function(t){
       [t.i1, t.i2].forEach(function(i){
-        var s = legScore(S.r[i]); if (!s) return;
-        var margin = Math.abs(s[0] - s[1]), total = s[0] + s[1];
-        var wn = s[0] >= s[1] ? t.a : t.b, ln = s[0] >= s[1] ? t.b : t.a;
-        var hi = Math.max(s[0], s[1]);
-        if (!bigWin || margin > bigWin.margin) bigWin = { margin:margin, w:wn, l:ln, s:s, a:t.a, b:t.b };
-        if (!highScore || total > highScore.total) highScore = { total:total, s:s, a:t.a, b:t.b };
-        if (!mostGoals || hi > mostGoals.hi) mostGoals = { hi:hi, who:wn };
+        var sc = legScore(S.r[i]); if (!sc) return;
+        every.push({ a:t.a, b:t.b, s:sc });
       });
     });
+    koLegs().forEach(function(L){ every.push({ a:L.a, b:L.b, s:L.s }); });
 
-    var st = stand(), all = st.A.concat(st.B);
+    every.forEach(function(g){
+      var sc = g.s;
+      var margin = Math.abs(sc[0] - sc[1]), total = sc[0] + sc[1];
+      var wn = sc[0] >= sc[1] ? g.a : g.b, ln = sc[0] >= sc[1] ? g.b : g.a;
+      var hi = Math.max(sc[0], sc[1]);
+      if (!bigWin || margin > bigWin.margin) bigWin = { margin:margin, w:wn, l:ln, s:sc, a:g.a, b:g.b };
+      if (!highScore || total > highScore.total) highScore = { total:total, s:sc, a:g.a, b:g.b };
+      if (!mostGoals || hi > mostGoals.hi) mostGoals = { hi:hi, who:wn };
+    });
+
+    var all = fullTally();
     var streak = null;
     all.forEach(function(r){
       var n = longestStreak(r.form, "W");
@@ -2965,6 +3022,11 @@
 
     if (!bigWin){ sec.hidden = true; return; }
     sec.hidden = false;
+    var kn = koLegs().length;
+    var rn = $("recNote");
+    if (rn) rn.textContent = kn
+      ? ("Groups + " + kn + " knockout leg" + (kn === 1 ? "" : "s"))
+      : "The tournament so far";
 
     var host = $("recBody"); host.innerHTML = "";
     function card(label, value, sub){
@@ -2989,8 +3051,7 @@
   function renderBoot(){
     var sec = $("bootSec");
     if (!result){ sec.hidden = true; return; }
-    var st = stand();
-    var all = st.A.concat(st.B).filter(function(r){ return r.p > 0; });
+    var all = fullTally().filter(function(r){ return r.p > 0; });
     if (!all.length){ sec.hidden = true; return; }
     sec.hidden = false;
 
@@ -3253,7 +3314,7 @@
   // Everything a scoreline affects EXCEPT the fixture inputs themselves.
   // Rebuilding those under the cursor is what used to eat half-typed scores.
   function renderScoreDependents(){
-    standCache = null;
+    standCache = null; fullCache = null;
     renderStatus(); renderBoard(); renderResult(); renderLadder(); renderMine(); renderProjection(); renderRecords(); renderBoot(); renderChase(); renderDraw(); renderHand(); renderKO(); orderSections(); stampSeen();
   }
 
@@ -3305,7 +3366,7 @@
   }
 
   function renderAll(){
-    standCache = null; teamCache = {};
+    standCache = null; teamCache = {}; fullCache = null;
     if (S.lk && claimTotal() === PLAYERS){
       result = computeDraw(); buildTies();
     } else { result = null; ties = []; }
