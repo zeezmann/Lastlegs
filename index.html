@@ -1031,7 +1031,7 @@
 
   // Bumped every time this file changes. Shown in the footer so you can tell at
   // a glance whether the copy being served is the copy you uploaded.
-  var BUILD = "v38";
+  var BUILD = "v39";
 
   /* ============================================================ */
 
@@ -2877,8 +2877,11 @@
     var wrap = $("drawWrap"), fr = $("drawFrame");
     if (!wrap || !fr) return;
     if (!fr.getAttribute("src")){
-      // carry the gaffer key through so the spin buttons follow him in
-      fr.setAttribute("src", DRAW_SRC + (isAdmin ? ("#" + ADMIN_KEY) : ""));
+      // A cache-buster on the end. Without it the browser can serve a stale
+      // copy of the draw page inside the frame, which is how you end up
+      // staring at a wheel after the draw has already been run.
+      fr.setAttribute("src", DRAW_SRC + "?v=" + BUILD
+        + (isAdmin ? ("#" + ADMIN_KEY) : ""));
     }
     wrap.hidden = false;
     drawOpen = true;
