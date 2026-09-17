@@ -275,23 +275,24 @@
      ========================================================== */
 
   var ORDER = [
-    { n: 1,  name: "Player 1"  },
-    { n: 2,  name: "Player 2"  },
-    { n: 3,  name: "Player 3"  },
-    { n: 4,  name: "Player 4"  },
-    { n: 5,  name: "Player 5"  },
-    { n: 6,  name: "Player 6"  },
-    { n: 7,  name: "Player 7"  },
-    { n: 8,  name: "Player 8"  },
-    { n: 9,  name: "Player 9"  },
-    { n: 10, name: "Player 10" }
+    { n: 1,  name: "Olamix"   },
+    { n: 2,  name: "David"    },
+    { n: 3,  name: "Adexzy"   },
+    { n: 4,  name: "Salvage"  },
+    { n: 8,  name: "Ekene"    },
+    { n: 10, name: "Dee"      },
+    { n: 11, name: "ZeezMann" },
+    { n: 13, name: "Mayor"    },
+    { n: 14, name: "Collins"  },
+    { n: 16, name: "Pyrex"    }
   ];
 
+  // 20 nominations, exactly as they came in. Ajax twice on purpose - a club
+  // nominated more than once gets more than one wedge and better odds.
   var POT = [
-    "Bournemouth","Brentford","Brighton","Everton","Fulham","Sunderland",
-    "West Ham","Leeds United","Lazio","Como","Bologna","Fiorentina",
-    "VfB Stuttgart","Eintracht Frankfurt","AS Monaco","LOSC Lille",
-    "FC Porto","Benfica","PSV","Girona"
+    "Al Nassr","Fulham","Brighton","Lyon","Everton","Ajax","Burnley","Ajax",
+    "Al Hilal","Wolves","Rayo Vallecano","Bournemouth","FC Porto","Celtic",
+    "AS Monaco","Gladbach","Bologna","Osasuna","Fenerbahce","Brentford"
   ];
 
   var FIREBASE_CONFIG = {
@@ -305,7 +306,7 @@
   };
   var DB_PATH  = "lastlegs/draw";
   var ADMIN_KEY = "gaffer7742";
-  var BUILD = "d1";
+  var BUILD = "d3";
 
 
   var $ = function(id){ return document.getElementById(id); };
@@ -843,7 +844,10 @@
 
   function pushStep(n, newSeed){
     if (!dbRef) return;
-    var payload = { step: n, seed: (newSeed || seed), at: Date.now() };
+    // "done" is what flips the bar on the tournament site from "Live now"
+    // over to "See the draw results".
+    var payload = { step: n, seed: (newSeed || seed), at: Date.now(),
+                    done: n >= ORDER.length };
     dbRef.set(payload);
   }
 

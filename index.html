@@ -379,6 +379,9 @@
 
   /* the live draw: opens over the page, in its own document, so nothing it
      does can reach the tournament's data */
+  .drawwarn{margin:26px 0 0;padding:12px 16px;border:1px solid var(--live);
+            border-left:4px solid var(--live);background:rgba(255,122,133,.08);
+            color:var(--live);font-family:var(--mono);font-size:12.5px;line-height:1.6}
   .drawbar{display:flex;align-items:center;gap:16px;width:100%;margin-top:30px;padding:16px 20px;
            cursor:pointer;text-align:left;font:inherit;
            border:1px solid var(--gold);border-left:4px solid var(--gold);
@@ -411,6 +414,28 @@
              color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:.13em;
              text-transform:uppercase}
   .drawclose:hover{color:var(--text);border-color:var(--star)}
+
+  /* group club -> knockout club */
+  .hands{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px}
+  .hand{display:flex;align-items:center;justify-content:space-between;gap:14px;
+        padding:13px 16px;background:var(--surface);border:1px solid var(--line-soft);
+        border-left:3px solid var(--line)}
+  .hand.moved{border-left-color:var(--gold)}
+  .hand .hn{display:flex;align-items:center;gap:10px;font-family:var(--display);
+            font-size:19px;font-weight:600;color:var(--text)}
+  .hand .hn i{font-style:normal;font-family:var(--mono);font-size:11px;color:var(--dim);
+              border:1px solid var(--line);padding:2px 6px;min-width:22px;text-align:center}
+  .hand .hc{display:flex;align-items:center;gap:9px;font-size:14px;text-align:right}
+  .hand .hc s{color:var(--dim);text-decoration:line-through}
+  .hand .hc em{font-style:normal;color:var(--gold)}
+  .hand .hc b{color:var(--text);font-weight:600}
+  .hand .hc em.kept{font-family:var(--mono);font-size:10px;letter-spacing:.12em;
+                    text-transform:uppercase;color:var(--dim)}
+  @media (max-width:520px){
+    .hands{grid-template-columns:1fr}
+    .hand{flex-direction:column;align-items:flex-start;gap:7px}
+    .hand .hc{text-align:left}
+  }
 
   .mdgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
   @media (max-width:560px){ .mdgrid{grid-template-columns:1fr} }
@@ -720,6 +745,7 @@
 
     <div id="setupBox"></div>
 
+    <p class="drawwarn" id="drawWarn" hidden></p>
     <button class="drawbar" id="drawBar" type="button" hidden>
       <span class="db-l">
         <span class="db-dot"></span>
@@ -1005,7 +1031,7 @@
 
   // Bumped every time this file changes. Shown in the footer so you can tell at
   // a glance whether the copy being served is the copy you uploaded.
-  var BUILD = "v33";
+  var BUILD = "v36";
 
   /* ============================================================ */
 
@@ -1794,7 +1820,8 @@
     var d = document.createElement("div"); d.className = "grp" + (cls ? " " + cls : "");
     var h = document.createElement("h3"); h.textContent = "Group " + letter;
     var m = document.createElement("p"); m.className = "meta";
-    m.textContent = "8 players · 14 games each · top 4 to the Cup";
+    m.textContent = "8 players \u00b7 14 games each \u00b7 top 4 to the Cup"
+      + (koMap() ? " \u00b7 group-stage clubs" : "");
     d.appendChild(h); d.appendChild(m);
 
     var rows = standingsFor(nums, letter);
@@ -2342,7 +2369,7 @@
       nm.className = "nm" + (who.name ? "" : " tbd");
       nm.textContent = who.name || who.label;
       if (who.name){
-        var kc = clubOf(numOf(who.name), koRoundKey(st.def.round));
+        var kc = koClub(numOf(who.name));
         if (kc){
           var cl = document.createElement("span");
           cl.className = "koclub"; cl.textContent = kc;
@@ -2659,6 +2686,49 @@
     host.appendChild(grid);
   }
 
+  /* ---------- group club to knockout club ---------- */
+
+  function renderHand(){
+    var sec = $("handSec");
+    if (!sec) return;
+    var m = koMap();
+    if (!result || !m){ sec.hidden = true; return; }
+    sec.hidden = false;
+
+    var inNums = {};
+    KO_IN.forEach(function(x){ inNums[x.n] = 1; });
+    var all = result.groupA.concat(result.groupB).slice().sort(function(a,b){ return a-b; });
+
+    $("handNote").textContent = KO_IN.length + " drawn live \u00b7 "
+      + (all.length - KO_IN.length) + " kept theirs";
+
+    var host = $("handBody"); host.innerHTML = "";
+    var grid = document.createElement("div"); grid.className = "hands";
+    all.forEach(function(num){
+      var was = clubOf(num, "g"), now = koClub(num);
+      var moved = !!inNums[num];
+      var row = document.createElement("div");
+      row.className = "hand" + (moved ? " moved" : "");
+      var nm = document.createElement("span"); nm.className = "hn";
+      var no = document.createElement("i"); no.textContent = num;
+      nm.appendChild(no); nm.appendChild(document.createTextNode(nameOf(num)));
+      var cl = document.createElement("span"); cl.className = "hc";
+      if (moved){
+        var oldc = document.createElement("s"); oldc.textContent = was || "\u2014";
+        var arrow = document.createElement("em"); arrow.textContent = "\u2192";
+        var newc = document.createElement("b"); newc.textContent = now || "\u2014";
+        cl.appendChild(oldc); cl.appendChild(arrow); cl.appendChild(newc);
+      } else {
+        var same = document.createElement("b"); same.textContent = now || "\u2014";
+        var tag = document.createElement("em"); tag.className = "kept"; tag.textContent = "kept";
+        cl.appendChild(same); cl.appendChild(tag);
+      }
+      row.appendChild(nm); row.appendChild(cl);
+      grid.appendChild(row);
+    });
+    host.appendChild(grid);
+  }
+
   /* ---------- section order ----------
      The page is read differently at each stage. During the groups people want
      the table; once the knockouts start the bracket is the only thing anyone
@@ -2694,18 +2764,82 @@
      write. Worst case the wheel breaks and the tournament site carries on. */
 
   var DRAW_SRC = "draw.html";
+
+  /* The knockout club draw. These two lists are the same ones draw.html uses,
+     and the result is worked out from the seed the wheel stored - so this page
+     reaches the same answer without anybody typing results in. Nothing here
+     writes: the group data is read-only from this point on. */
+  var KO_IN = [
+    { n: 1,  name: "Olamix"   },
+    { n: 2,  name: "David"    },
+    { n: 3,  name: "Adexzy"   },
+    { n: 4,  name: "Salvage"  },
+    { n: 8,  name: "Ekene"    },
+    { n: 10, name: "Dee"      },
+    { n: 11, name: "ZeezMann" },
+    { n: 13, name: "Mayor"    },
+    { n: 14, name: "Collins"  },
+    { n: 16, name: "Pyrex"    }
+  ];
+  var KO_POT = [
+    "Al Nassr","Fulham","Brighton","Lyon","Everton","Ajax","Burnley","Ajax",
+    "Al Hilal","Wolves","Rayo Vallecano","Bournemouth","FC Porto","Celtic",
+    "AS Monaco","Gladbach","Bologna","Osasuna","Fenerbahce","Brentford"
+  ];
+
+  var koMapCache = null, koMapSeed = 0;
+  function koMap(){
+    if (!drawState || !drawState.done || !drawState.seed) return null;
+    if (koMapCache && koMapSeed === drawState.seed) return koMapCache;
+    var pool = KO_POT.slice(), out = {};
+    for (var i = 0; i < KO_IN.length; i++){
+      if (!pool.length) break;
+      var r = rng(hashSeed("pick|" + drawState.seed + "|" + i));
+      var pick = pool[Math.floor(r() * pool.length) % pool.length];
+      out[KO_IN[i].n] = pick;
+      pool = pool.filter(function(c){ return c !== pick; });
+    }
+    koMapCache = out; koMapSeed = drawState.seed;
+    return out;
+  }
+
+  // What a player takes into the knockouts: their drawn club if they were in
+  // the draw, otherwise the club they had all through the groups.
+  function koClub(num){
+    var m = koMap();
+    if (m && m[num]) return m[num];
+    return clubOf(num, "g");
+  }
   // The gaffer can see the draw from the moment this is uploaded, so he can
   // rehearse. Everyone else only gets the bar from this time onwards - local
   // time on their own phone, which is what they'd expect.
   // One fixed moment worldwide, not "18:25 on your own clock". 17:25 UTC is
   // 18:25 in the UK and 19:25 in France on this date, so everybody gets the
   // bar at the same instant, twenty minutes before the first spin.
-  var DRAW_OPENS = Date.UTC(2026, 8, 17, 19, 10);   // 20:10 UK - bar goes live
-  var DRAW_AT    = Date.UTC(2026, 8, 17, 19, 30);   // 20:30 UK - first spin
-  var DRAW_TIME_TXT = "8:30pm UK \u00b7 9:30pm FR";
+  var DRAW_OPENS = Date.UTC(2026, 8, 17, 18, 50);   // 19:50 UK - bar goes live
+  var DRAW_AT    = Date.UTC(2026, 8, 17, 19, 0);    // 20:00 UK - first spin
+  var DRAW_TIME_TXT = "8pm UK \u00b7 9pm FR";
   var drawState = null, drawOpen = false;
 
+  // If a number in the draw list belongs to someone else, the wheel would
+  // call out the wrong name in front of everyone. Check it while there is
+  // still time to fix it - gaffer only, the lads never see this.
+  function checkKoNames(){
+    var w = $("drawWarn");
+    if (!w) return;
+    if (!isAdmin || !result){ w.hidden = true; return; }
+    var bad = [];
+    KO_IN.forEach(function(x){
+      var real = nameOf(x.n);
+      if (real && real !== x.name) bad.push("#" + x.n + " is " + real + ", not " + x.name);
+    });
+    if (!bad.length){ w.hidden = true; return; }
+    w.hidden = false;
+    w.textContent = "Draw list doesn't match the numbers: " + bad.join(" \u00b7 ");
+  }
+
   function renderDraw(){
+    checkKoNames();
     var bar = $("drawBar");
     if (!bar) return;
     // Only once there is nothing left to play in the groups.
@@ -3120,7 +3254,7 @@
   // Rebuilding those under the cursor is what used to eat half-typed scores.
   function renderScoreDependents(){
     standCache = null;
-    renderStatus(); renderBoard(); renderResult(); renderLadder(); renderMine(); renderProjection(); renderRecords(); renderBoot(); renderChase(); renderDraw(); renderKO(); orderSections(); stampSeen();
+    renderStatus(); renderBoard(); renderResult(); renderLadder(); renderMine(); renderProjection(); renderRecords(); renderBoot(); renderChase(); renderDraw(); renderHand(); renderKO(); orderSections(); stampSeen();
   }
 
   function typingInAScoreBox(){
@@ -3177,7 +3311,7 @@
     } else { result = null; ties = []; }
     renderNames(); renderClubRule(); placeClaimSec();
     renderLive(); renderStatus(); renderBoard(); renderGrid(); renderClaimBox();
-    renderResult(); renderLadder(); renderMine(); renderProjection(); renderRecords(); renderBoot(); renderChase(); renderDraw(); orderSections();
+    renderResult(); renderLadder(); renderMine(); renderProjection(); renderRecords(); renderBoot(); renderChase(); renderDraw(); renderHand(); orderSections();
     renderTeams(); renderFixtures(); renderKO(); renderVerify();
     stampSeen();
     firstPaint = false;
@@ -3235,7 +3369,8 @@
       firebase.database().ref("lastlegs/draw/state").on("value", function(snap){
         var d = snap.val();
         drawState = d ? { step: d.step || 0, seed: d.seed || 0, done: !!d.done } : null;
-        renderDraw();
+        koMapCache = null;
+        renderAll();
       }, function(){ /* the draw being unreachable must never break the site */ });
 
       dbRef.on("value", function(snap){
