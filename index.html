@@ -377,6 +377,35 @@
        text-transform:uppercase;color:var(--dim);margin-top:4px;font-weight:500;
        white-space:normal;max-width:19ch;line-height:1.35}
 
+  /* the live draw: opens over the page, in its own document, so nothing it
+     does can reach the tournament's data */
+  .drawbar{display:flex;align-items:center;gap:16px;width:100%;margin-top:30px;padding:16px 20px;
+           cursor:pointer;text-align:left;font:inherit;
+           border:1px solid var(--gold);border-left:4px solid var(--gold);
+           background:linear-gradient(100deg,rgba(231,200,120,.14),rgba(231,200,120,.03) 60%)}
+  .drawbar:hover{background:linear-gradient(100deg,rgba(231,200,120,.22),rgba(231,200,120,.06) 60%)}
+  .drawbar .db-l{display:flex;align-items:center;gap:9px;flex:none}
+  .drawbar .db-dot{width:9px;height:9px;border-radius:50%;background:var(--live);
+                   box-shadow:0 0 0 0 var(--live);animation:dbp 1.9s infinite}
+  @keyframes dbp{0%{box-shadow:0 0 0 0 rgba(255,122,133,.55)}70%{box-shadow:0 0 0 9px rgba(255,122,133,0)}100%{box-shadow:0 0 0 0 rgba(255,122,133,0)}}
+  .drawbar .db-lab{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--live)}
+  .drawbar .db-t{flex:1;font-family:var(--display);font-size:25px;font-weight:600;
+                 letter-spacing:.03em;text-transform:uppercase;color:var(--text)}
+  .drawbar .db-go{flex:none;font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+                  text-transform:uppercase;color:var(--gold)}
+  @media (max-width:620px){
+    .drawbar{flex-wrap:wrap;gap:9px}
+    .drawbar .db-t{flex:1 0 100%;font-size:21px;order:2}
+    .drawbar .db-go{order:3}
+  }
+  .drawwrap{position:fixed;inset:0;z-index:70;background:var(--ground-2)}
+  .drawwrap iframe{width:100%;height:100%;border:0;display:block}
+  .drawclose{position:fixed;top:14px;right:14px;z-index:71;cursor:pointer;
+             padding:9px 15px;border:1px solid var(--line);background:rgba(5,9,26,.82);
+             color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:.13em;
+             text-transform:uppercase}
+  .drawclose:hover{color:var(--text);border-color:var(--star)}
+
   .mdgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
   @media (max-width:560px){ .mdgrid{grid-template-columns:1fr} }
 
@@ -685,6 +714,20 @@
 
     <div id="setupBox"></div>
 
+    <button class="drawbar" id="drawBar" type="button" hidden>
+      <span class="db-l">
+        <span class="db-dot"></span>
+        <span class="db-lab" id="drawBarLab">Live now</span>
+      </span>
+      <span class="db-t">Watch the live draw 🎡</span>
+      <span class="db-go">Open</span>
+    </button>
+
+    <div class="drawwrap" id="drawWrap" hidden>
+      <button class="drawclose" id="drawClose" type="button" aria-label="Close the draw">Close ✕</button>
+      <iframe id="drawFrame" title="Knockout club draw" sandbox="allow-scripts allow-same-origin"></iframe>
+    </div>
+
     <section id="chaseSec" hidden>
       <div class="sec-head">
         <h2>Still to play</h2>
@@ -953,7 +996,7 @@
 
   // Bumped every time this file changes. Shown in the footer so you can tell at
   // a glance whether the copy being served is the copy you uploaded.
-  var BUILD = "v23";
+  var BUILD = "v26";
 
   /* ============================================================ */
 
@@ -2608,6 +2651,52 @@
     host.appendChild(grid);
   }
 
+  /* ---------- the live draw ----------
+     The draw is its own document opened over the page. It is sandboxed, so it
+     cannot touch anything here - not the results, not the tables, not a single
+     write. Worst case the wheel breaks and the tournament site carries on. */
+
+  var DRAW_SRC = "draw.html";
+  // The gaffer can see the draw from the moment this is uploaded, so he can
+  // rehearse. Everyone else only gets the bar from this time onwards - local
+  // time on their own phone, which is what they'd expect.
+  var DRAW_OPENS = new Date(2026, 8, 17, 18, 25).getTime();   // Thu 17 Sept, 18:25
+  var drawState = null, drawOpen = false;
+
+  function renderDraw(){
+    var bar = $("drawBar");
+    if (!bar) return;
+    // Only once there is nothing left to play in the groups.
+    if (!result || !groupsComplete()){ bar.hidden = true; return; }
+    if (!isAdmin && Date.now() < DRAW_OPENS){ bar.hidden = true; return; }
+    bar.hidden = false;
+    var done = drawState && drawState.done;
+    $("drawBarLab").textContent = done ? "Done" : "Live now";
+    bar.querySelector(".db-t").textContent = done
+      ? "See the draw results \uD83C\uDFA1"
+      : "Watch the live draw \uD83C\uDFA1";
+    bar.querySelector(".db-dot").style.display = done ? "none" : "";
+  }
+
+  function openDraw(){
+    var wrap = $("drawWrap"), fr = $("drawFrame");
+    if (!wrap || !fr) return;
+    if (!fr.getAttribute("src")){
+      // carry the gaffer key through so the spin buttons follow him in
+      fr.setAttribute("src", DRAW_SRC + (isAdmin ? ("#" + ADMIN_KEY) : ""));
+    }
+    wrap.hidden = false;
+    drawOpen = true;
+    document.body.style.overflow = "hidden";
+  }
+  function closeDraw(){
+    var wrap = $("drawWrap");
+    if (!wrap) return;
+    wrap.hidden = true;
+    drawOpen = false;
+    document.body.style.overflow = "";
+  }
+
   /* ---------- how the brackets would fall right now ---------- */
 
   function renderProjection(){
@@ -2970,7 +3059,7 @@
   // Rebuilding those under the cursor is what used to eat half-typed scores.
   function renderScoreDependents(){
     standCache = null;
-    renderStatus(); renderBoard(); renderResult(); renderLadder(); renderMine(); renderProjection(); renderRecords(); renderBoot(); renderChase(); renderKO(); stampSeen();
+    renderStatus(); renderBoard(); renderResult(); renderLadder(); renderMine(); renderProjection(); renderRecords(); renderBoot(); renderChase(); renderDraw(); renderKO(); stampSeen();
   }
 
   function typingInAScoreBox(){
@@ -3028,7 +3117,7 @@
     } else { result = null; ties = []; }
     renderNames(); renderClubRule(); placeClaimSec();
     renderLive(); renderStatus(); renderBoard(); renderGrid(); renderClaimBox();
-    renderResult(); renderLadder(); renderMine(); renderProjection(); renderRecords(); renderBoot(); renderChase();
+    renderResult(); renderLadder(); renderMine(); renderProjection(); renderRecords(); renderBoot(); renderChase(); renderDraw();
     renderTeams(); renderFixtures(); renderKO(); renderVerify();
     stampSeen();
     firstPaint = false;
@@ -3082,6 +3171,13 @@
         renderLive();
       });
 
+      // The draw keeps its own branch. This page only ever reads it.
+      firebase.database().ref("lastlegs/draw/state").on("value", function(snap){
+        var d = snap.val();
+        drawState = d ? { step: d.step || 0, seed: d.seed || 0, done: !!d.done } : null;
+        renderDraw();
+      }, function(){ /* the draw being unreachable must never break the site */ });
+
       dbRef.on("value", function(snap){
         var v = snap.val();
         if (v) adopt(v);
@@ -3101,6 +3197,12 @@
   } else {
     showSetupHelp();
   }
+
+  var _db = $("drawBar"); if (_db) _db.onclick = openDraw;
+  var _dc = $("drawClose"); if (_dc) _dc.onclick = closeDraw;
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape" && drawOpen) closeDraw();
+  });
 
   renderAll();
 })();

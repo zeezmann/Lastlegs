@@ -1,0 +1,1042 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Knockout Draw — Wheel Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --ground:#05091A; --ground-2:#02040F;
+    --surface:#0C1330; --surface-2:#141D45;
+    --line:#25316B; --line-soft:#1A2350;
+    --text:#EDF1FC; --muted:#A6B4DD; --dim:#7C8ABA;
+    --star:#7FA6FF; --star-dim:#2E4390;
+    --gold:#E7C878; --gold-dim:#7A6432;
+    --live:#FF7A85; --go:#5BD6A4;
+    --display:"Oswald","Arial Narrow",sans-serif;
+    --body:"Barlow","Helvetica Neue",Arial,sans-serif;
+    --mono:"IBM Plex Mono","SFMono-Regular",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  [hidden]{display:none!important}
+  body{
+    background:var(--ground);
+    background-image:
+      radial-gradient(1100px 520px at 50% -10%, rgba(127,166,255,.16), transparent 64%),
+      radial-gradient(760px 420px at 88% 104%, rgba(231,200,120,.08), transparent 62%);
+    background-attachment:fixed;
+    color:var(--text);font-family:var(--body);font-size:16px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 64px}
+  .top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--star);margin:0 0 8px}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,5.6vw,52px);line-height:.95;
+     text-transform:uppercase;margin:0;letter-spacing:.005em}
+  h1 .gold{color:var(--gold)}
+  .demo-tag{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+            color:var(--gold);border:1px solid var(--gold-dim);padding:7px 11px;white-space:nowrap}
+  .lede{color:var(--muted);max-width:64ch;margin:12px 0 24px;font-size:16px}
+
+  .stage{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start}
+  .panel{background:var(--surface);border:1px solid var(--line);padding:16px}
+  .panel h2{font-family:var(--display);font-size:15px;text-transform:uppercase;letter-spacing:.11em;
+            margin:0 0 12px;color:var(--star);font-weight:600}
+
+  .centre{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--gold);
+          padding:22px 20px 26px;display:flex;flex-direction:column;align-items:center;
+          position:relative;transition:box-shadow .3s ease}
+  .centre.win{box-shadow:0 0 0 1px var(--gold-dim), 0 0 70px rgba(231,200,120,.14) inset}
+  .sndbtn{position:absolute;right:14px;top:14px;z-index:7;font-family:var(--mono);font-size:11px;
+          letter-spacing:.12em;text-transform:uppercase;padding:8px 12px;cursor:pointer;
+          background:var(--surface-2);border:1px solid var(--line);color:var(--dim)}
+  .sndbtn.on{color:var(--go);border-color:#2C6B52}
+  .namecard{width:100%;max-width:460px;text-align:center;min-height:80px}
+  .nc-lab{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim)}
+  .nc-name{font-family:var(--display);font-size:clamp(28px,4.6vw,42px);font-weight:700;text-transform:uppercase;
+           line-height:1.05;margin-top:4px;color:var(--text)}
+  .nc-name .no{color:var(--star);margin-right:10px}
+  .namecard.in{animation:slideIn .45s cubic-bezier(.2,.9,.3,1.2) both}
+  @keyframes slideIn{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+
+  .count3{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;
+          font-family:var(--display);font-size:96px;font-weight:700;color:var(--gold);line-height:1;
+          text-shadow:0 0 30px rgba(231,200,120,.5);animation:pop .58s ease both;pointer-events:none}
+  @keyframes pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.45)}
+                 45%{opacity:1;transform:translate(-50%,-50%) scale(1.14)}
+                 100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+
+  /* ---------- casino bulbs ---------- */
+  .bulbs{position:absolute;inset:0;pointer-events:none;z-index:3}
+  .bulbs i{position:absolute;width:11px;height:11px;border-radius:50%;
+           transform:translate(-50%,-50%);background:#1E2A5C;
+           box-shadow:0 0 0 1px rgba(127,166,255,.22);transition:none}
+  .bulbs.idle i{animation:bulbIdle 2.6s ease-in-out infinite}
+  .bulbs.run  i{animation:bulbRun .5s linear infinite}
+  .bulbs.win  i{animation:bulbWin .34s steps(1,end) infinite}
+  @keyframes bulbIdle{
+    0%,100%{background:#1E2A5C;box-shadow:0 0 0 1px rgba(127,166,255,.22)}
+    50%{background:#3C5AAE;box-shadow:0 0 9px 1px rgba(127,166,255,.45)}
+  }
+  @keyframes bulbRun{
+    0%,55%,100%{background:#1E2A5C;box-shadow:0 0 0 1px rgba(127,166,255,.22)}
+    12%{background:#EAF0FF;box-shadow:0 0 15px 3px rgba(127,166,255,.85)}
+  }
+  @keyframes bulbWin{
+    0%,49%{background:#E7C878;box-shadow:0 0 17px 4px rgba(231,200,120,.8)}
+    50%,100%{background:#3A2E10;box-shadow:0 0 0 1px rgba(231,200,120,.3)}
+  }
+
+  /* ---------- the wheel ---------- */
+  .wheelbox{position:relative;width:min(74vw,440px);aspect-ratio:1;margin:30px 0 26px}
+  #wheel{width:100%;height:100%;display:block;border-radius:50%;
+         box-shadow:0 0 0 6px #0A0F26, 0 0 0 8px var(--star-dim), 0 22px 50px rgba(0,0,0,.6)}
+  .wheelbox.landed #wheel{box-shadow:0 0 0 6px #0A0F26, 0 0 0 8px var(--gold), 0 0 55px rgba(231,200,120,.34)}
+  .hub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;
+       width:33%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 50% 38%,#111B44,#060B22 75%);
+       border:2px solid var(--star-dim);display:grid;place-items:center;text-align:center;padding:8px}
+  .wheelbox.landed .hub{border-color:var(--gold)}
+  .hub b{font-family:var(--display);font-size:clamp(13px,2.4vw,18px);font-weight:600;text-transform:uppercase;
+         color:var(--muted);line-height:1.15;word-break:break-word}
+  .wheelbox.landed .hub b{color:var(--gold);animation:stamp .5s cubic-bezier(.2,.9,.3,1.5) both}
+  @keyframes stamp{0%{transform:scale(1.6);opacity:0}55%{transform:scale(.95);opacity:1}100%{transform:scale(1)}}
+
+  .pointer{position:absolute;left:50%;top:-13px;transform:translateX(-50%);z-index:5;
+           width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;
+           border-top:30px solid var(--gold);filter:drop-shadow(0 3px 6px rgba(0,0,0,.7));
+           transform-origin:50% 0}
+  .pointer.tick{animation:tick .09s linear infinite}
+  @keyframes tick{0%,100%{transform:translateX(-50%) rotate(0deg)}50%{transform:translateX(-50%) rotate(-9deg)}}
+
+  .verdict{margin-top:20px;font-family:var(--mono);font-size:13px;letter-spacing:.14em;
+           text-transform:uppercase;color:var(--dim);min-height:20px;text-align:center}
+  .verdict.hit{color:var(--gold)}
+
+  .controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:20px}
+  .btn{font-family:var(--display);font-weight:600;text-transform:uppercase;letter-spacing:.14em;font-size:14px;
+       padding:13px 26px;cursor:pointer;border:1px solid var(--gold);background:var(--gold);color:var(--ground-2);
+       transition:transform .14s ease,background .14s ease}
+  .btn:hover:not(:disabled){background:#F2D98F;transform:translateY(-2px)}
+  .btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  .btn.ghost{background:transparent;color:var(--muted);border-color:var(--line)}
+  .btn.ghost:hover:not(:disabled){background:var(--surface-2);color:var(--text)}
+
+  .left-count{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+              color:var(--dim);margin-top:14px;text-align:center}
+  .left-count b{font-family:var(--display);font-size:22px;color:var(--text);margin-right:4px}
+  .watchers{font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;
+            color:var(--go);display:flex;align-items:center;gap:8px;margin-top:10px;justify-content:center}
+  .pulse{width:8px;height:8px;border-radius:50%;background:var(--go);animation:blink 1.9s ease-in-out infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+
+  .board{max-height:640px;overflow:auto}
+  .brow{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:baseline;
+        padding:9px 0;border-top:1px solid var(--line-soft);animation:slideIn .35s ease both}
+  .brow:first-of-type{border-top:0}
+  .brow .n{font-family:var(--mono);font-size:11px;color:var(--dim)}
+  .brow .who{font-family:var(--display);font-size:17px;font-weight:600;color:var(--text);line-height:1.15}
+  .brow .got{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.07em;
+             text-transform:uppercase;color:var(--gold);margin-top:2px}
+  .empty{color:var(--dim);font-size:14px;font-family:var(--mono)}
+
+  /* ---------- the finale board ---------- */
+  .stage.away{animation:stageOut .7s ease both;pointer-events:none}
+  @keyframes stageOut{to{opacity:0;transform:scale(.97) translateY(-10px);visibility:hidden}}
+  .finale{animation:riseUp .6s ease both}
+  @keyframes riseUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+  .fin-head{text-align:center;margin-bottom:26px}
+  .fin-head .lab{font-family:var(--mono);font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--star)}
+  .fin-head h2{font-family:var(--display);font-weight:700;text-transform:uppercase;
+               font-size:clamp(32px,6.4vw,60px);line-height:.98;margin:8px 0 0;color:var(--text)}
+  .fin-head h2 .gold{color:var(--gold)}
+  .fin-head p{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+              color:var(--dim);margin:12px 0 0}
+  .fingrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .fincard{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;
+           padding:14px 15px;background:var(--surface);border:1px solid var(--line);
+           border-left:3px solid var(--gold-dim);opacity:0;animation:cardIn .45s ease forwards}
+  @keyframes cardIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
+  .fincard .no{font-family:var(--display);font-weight:700;font-size:13px;width:30px;height:30px;
+               display:grid;place-items:center;background:var(--surface-2);
+               border:1px solid var(--star-dim);color:var(--star)}
+  .fincard .nm{font-family:var(--display);font-size:21px;font-weight:600;color:var(--text);line-height:1.1;min-width:0}
+  .fincard .cl{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+               text-transform:uppercase;color:var(--gold);margin-top:4px;
+               overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .fin-foot{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:28px}
+  @media (max-width:980px){ .fingrid{grid-template-columns:repeat(2,1fr)} }
+  @media (max-width:520px){ .fingrid{grid-template-columns:1fr} }
+
+  #confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60}
+  .note{margin-top:26px;padding:14px 16px;border-left:3px solid var(--star);background:var(--surface);
+        color:var(--muted);font-size:14.5px;line-height:1.55}
+
+  .livebar{display:inline-flex;align-items:center;gap:9px;margin:4px 0 22px;padding:7px 13px;
+           border:1px solid var(--line);background:var(--surface);font-family:var(--mono);
+           font-size:11.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+  .livebar.on{border-color:#2F6B4F;color:#8FE3BE}
+  .livebar.bad{border-color:#7A3340;color:#FF9AA3}
+  .livebar .pulse{width:8px;height:8px;border-radius:50%;background:currentColor;
+                  box-shadow:0 0 0 0 currentColor;animation:pz 2s infinite}
+  @keyframes pz{0%{box-shadow:0 0 0 0 rgba(143,227,190,.5)}70%{box-shadow:0 0 0 8px rgba(143,227,190,0)}100%{box-shadow:0 0 0 0 rgba(143,227,190,0)}}
+  .waiting{margin:18px 0 0;font-size:15px;color:var(--muted);text-align:center}
+  .note summary{cursor:pointer;font-family:var(--mono);font-size:11.5px;letter-spacing:.11em;
+                text-transform:uppercase;color:var(--star)}
+  .note p{margin:11px 0 0}
+
+  @media (max-width:900px){ .stage{grid-template-columns:1fr} .board{max-height:none} }
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="top">
+    <div>
+      <p class="eyebrow">Knockout club draw</p>
+      <h1>The <span class="gold">Wheel</span></h1>
+    </div>
+    <span class="demo-tag" id="roleTag">Watching</span>
+  </div>
+  <div class="livebar" id="livebar"><span class="pulse"></span><span id="liveText">Connecting…</span></div>
+
+  <div class="stage">
+    <div class="centre" id="centre">
+      <div class="namecard" id="namecard">
+        <span class="nc-lab" id="ncLab">Ready</span>
+        <div class="nc-name" id="ncName">Draw not started</div>
+      </div>
+
+      <button class="sndbtn" id="snd" type="button">🔇 Tap for sound</button>
+
+      <div class="wheelbox" id="wheelbox">
+        <div class="bulbs idle" id="bulbs" aria-hidden="true"></div>
+        <div class="pointer" id="pointer"></div>
+        <canvas id="wheel"></canvas>
+        <div class="hub"><b id="hub">Spin up</b></div>
+      </div>
+
+      <p class="left-count"><b id="leftN">0</b> left on the wheel</p>
+      <div class="watchers" id="watchers" hidden><span class="pulse"></span><span id="watch"></span></div>
+
+      <p class="verdict" id="verdict"></p>
+
+      <div class="controls" id="controls" hidden>
+        <button class="btn" id="go">Spin</button>
+        <button class="btn ghost" id="auto">Play all</button>
+        <button class="btn ghost" id="reset">Start again</button>
+      </div>
+      <p class="waiting" id="waiting">The gaffer hasn't started yet. Sit tight 👀</p>
+    </div>
+
+    <div class="panel">
+      <h2>Drawn so far</h2>
+      <div class="board" id="board"><p class="empty">Nothing drawn yet</p></div>
+    </div>
+  </div>
+
+  <section class="finale" id="finale" hidden>
+    <div class="fin-head">
+      <span class="lab">The draw is done</span>
+      <h2>The <span class="gold">Knockout</span> Clubs</h2>
+      <p id="finSub"></p>
+    </div>
+    <div class="fingrid" id="finGrid"></div>
+    <div class="fin-foot" id="finFoot" hidden>
+      <button class="btn ghost" id="finAgain">Run it again</button>
+    </div>
+  </section>
+
+  <details class="note">
+    <summary>How this is fair</summary>
+    <p>The whole draw is worked out from one seed before the first spin, so every phone shows the same result and it can be checked afterwards — same as the group draw. Each team that lands comes off the wheel, so nobody ends up with the same one.</p>
+  </details>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  /* ==========================================================
+     THE ONLY BITS TO EDIT
+
+     ORDER  - who is in the draw, in the order they get spun for.
+              Use their tournament number and the name as it
+              appears on the site.
+     POT    - every nomination that went in. Duplicates are fine
+              and make that team likelier; once it is drawn all
+              copies come off the wheel.
+     ========================================================== */
+
+  var ORDER = [
+    { n: 1,  name: "Player 1"  },
+    { n: 2,  name: "Player 2"  },
+    { n: 3,  name: "Player 3"  },
+    { n: 4,  name: "Player 4"  },
+    { n: 5,  name: "Player 5"  },
+    { n: 6,  name: "Player 6"  },
+    { n: 7,  name: "Player 7"  },
+    { n: 8,  name: "Player 8"  },
+    { n: 9,  name: "Player 9"  },
+    { n: 10, name: "Player 10" }
+  ];
+
+  var POT = [
+    "Bournemouth","Brentford","Brighton","Everton","Fulham","Sunderland",
+    "West Ham","Leeds United","Lazio","Como","Bologna","Fiorentina",
+    "VfB Stuttgart","Eintracht Frankfurt","AS Monaco","LOSC Lille",
+    "FC Porto","Benfica","PSV","Girona"
+  ];
+
+  var FIREBASE_CONFIG = {
+    apiKey: "AIzaSyBKhuUJ5rf1yBgTsEzv2s8dA9pq_9ip-I4",
+    authDomain: "last-legs-cup.firebaseapp.com",
+    databaseURL: "https://last-legs-cup-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "last-legs-cup",
+    storageBucket: "last-legs-cup.firebasestorage.app",
+    messagingSenderId: "612697629060",
+    appId: "1:612697629060:web:22ca8e2f069c3dbd8d3dd1"
+  };
+  var DB_PATH  = "lastlegs/draw";
+  var ADMIN_KEY = "gaffer7742";
+  var BUILD = "d1";
+
+
+  var $ = function(id){ return document.getElementById(id); };
+
+  function hashSeed(str){
+    var h = 0x811c9dc5;
+    for (var i = 0; i < str.length; i++){
+      h ^= str.charCodeAt(i);
+      h = (h + ((h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24))) >>> 0;
+    }
+    return h >>> 0;
+  }
+  function rng(seed){
+    var a = seed >>> 0;
+    return function(){
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t>>>15), t | 1);
+      t ^= t + Math.imul(t ^ (t>>>7), t | 61);
+      return ((t ^ (t>>>14)) >>> 0) / 4294967296;
+    };
+  }
+  function shuffled(list, seed){
+    var a = list.slice(), r = rng(seed);
+    for (var i = a.length - 1; i > 0; i--){
+      var j = Math.floor(r() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  /* ---------- sound: generated on the fly, no files to load ----------
+     Browsers won't make a noise until the viewer has interacted with the page,
+     which is why every person watching has to flip this on themselves. */
+  var AC = null, soundOn = false;
+  function ac(){
+    if (!AC){
+      var C = window.AudioContext || window.webkitAudioContext;
+      if (!C) return null;
+      try { AC = new C(); } catch(e){ return null; }
+    }
+    if (AC.state === "suspended") AC.resume();
+    return AC;
+  }
+  function tone(freq, dur, type, vol, when){
+    if (!soundOn) return;
+    var a = ac(); if (!a) return;
+    var t = a.currentTime + (when || 0);
+    var o = a.createOscillator(), g = a.createGain();
+    o.type = type || "sine";
+    o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol || 0.07, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + (dur || 0.2));
+    o.connect(g); g.connect(a.destination);
+    o.start(t); o.stop(t + (dur || 0.2) + 0.03);
+  }
+  /* Noise, not tones. Clicks, riffles and drum hits are all broadband - doing
+     them with an oscillator is what made it sound like a microwave. */
+  var noiseBuf = null;
+  function noiseBuffer(a){
+    if (noiseBuf) return noiseBuf;
+    var len = Math.floor(a.sampleRate * 0.5);
+    noiseBuf = a.createBuffer(1, len, a.sampleRate);
+    var d = noiseBuf.getChannelData(0);
+    for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    return noiseBuf;
+  }
+  function noise(dur, cf, q, vol, when, ftype){
+    if (!soundOn) return;
+    var a = ac(); if (!a) return;
+    var t = a.currentTime + (when || 0);
+    var src = a.createBufferSource();
+    src.buffer = noiseBuffer(a);
+    src.playbackRate.value = 0.8 + Math.random() * 0.4;
+    var f = a.createBiquadFilter();
+    f.type = ftype || "bandpass";
+    f.frequency.setValueAtTime(cf, t);
+    f.Q.value = q || 1;
+    var g = a.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(f); f.connect(g); g.connect(a.destination);
+    src.start(t); src.stop(t + dur + 0.03);
+  }
+  // A pitch-dropping sine reads as a struck drum rather than a beep.
+  function thud(freq, dur, vol, when){
+    if (!soundOn) return;
+    var a = ac(); if (!a) return;
+    var t = a.currentTime + (when || 0);
+    var o = a.createOscillator(), g = a.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(freq, t);
+    o.frequency.exponentialRampToValueAtTime(freq * 0.45, t + dur * 0.85);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(a.destination);
+    o.start(t); o.stop(t + dur + 0.03);
+    noise(0.03, 2200, 0.7, vol * 0.35, when);   // the stick hitting the skin
+  }
+
+  var lastTick = 0;
+  // The iOS picker click: very short, soft-edged, consistent pitch, low volume.
+  // Rounded off with a lowpass rather than a bandpass, which is what stops it
+  // sounding like a snare and starts it sounding like a detent.
+  function tick(){
+    var now = Date.now();
+    if (now - lastTick < 24) return;
+    lastTick = now;
+    if (!soundOn) return;
+    var a = ac(); if (!a) return;
+    var t = a.currentTime;
+
+    var src = a.createBufferSource();
+    src.buffer = noiseBuffer(a);
+    src.playbackRate.value = 1;
+    var f = a.createBiquadFilter();
+    f.type = "lowpass"; f.frequency.value = 2100; f.Q.value = 0.9;
+    var g = a.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.05, t + 0.002);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.016);
+    src.connect(f); f.connect(g); g.connect(a.destination);
+    src.start(t); src.stop(t + 0.05);
+
+    // a whisper of pitch on top gives it the little wooden "tok"
+    var o = a.createOscillator(), og = a.createGain();
+    o.type = "sine"; o.frequency.setValueAtTime(1900, t);
+    og.gain.setValueAtTime(0.0001, t);
+    og.gain.exponentialRampToValueAtTime(0.022, t + 0.002);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.022);
+    o.connect(og); og.connect(a.destination);
+    o.start(t); o.stop(t + 0.06);
+  }
+
+  /* Game-show countdown pip: two detuned saws, a sine underneath for weight,
+     and a filter that opens on the attack. That stack is what makes it sound
+     like a broadcast rather than a kitchen timer. */
+  function pip(freq, dur, vol){
+    if (!soundOn) return;
+    var a = ac(); if (!a) return;
+    var t = a.currentTime;
+    var f = a.createBiquadFilter();
+    f.type = "lowpass";
+    f.frequency.setValueAtTime(freq * 1.6, t);
+    f.frequency.exponentialRampToValueAtTime(freq * 6, t + 0.05);
+    f.frequency.exponentialRampToValueAtTime(freq * 2, t + dur);
+    f.Q.value = 3.5;
+    var g = a.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.012);
+    g.gain.setValueAtTime(vol, t + dur * 0.55);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    f.connect(g); g.connect(a.destination);
+
+    [[freq, "sawtooth", 1], [freq * 1.006, "sawtooth", 0.8], [freq / 2, "sine", 0.9]]
+      .forEach(function(spec){
+        var o = a.createOscillator(), og = a.createGain();
+        o.type = spec[1]; o.frequency.setValueAtTime(spec[0], t);
+        og.gain.value = spec[2];
+        o.connect(og); og.connect(f);
+        o.start(t); o.stop(t + dur + 0.05);
+      });
+  }
+  // three… two… and a higher, longer one that lifts straight into the spin
+  function beep(i){
+    if (i < 2) pip(440, 0.30, 0.085);
+    else pip(740, 0.52, 0.105);
+  }
+  function chime(){
+    noise(0.16, 3800, 0.6, 0.07, 0, "highpass");            // the clunk of it settling
+    [[523.25,0.02],[783.99,0.11],[1046.5,0.21]].forEach(function(p){
+      tone(p[0], 0.75, "triangle", 0.085, p[1]);
+    });
+  }
+  function fanfare(){
+    [[523.25,0],[659.25,0.13],[783.99,0.26],[1046.5,0.39],[1318.5,0.56]].forEach(function(p){
+      tone(p[0], 0.75, "triangle", 0.11, p[1]);
+    });
+  }
+  function setSound(on){
+    soundOn = on;
+    var btn = $("snd");
+    btn.textContent = on ? "Sound on" : "Sound off";
+    btn.classList.toggle("on", on);
+    if (on){ ac(); noise(0.05, 2600, 1.6, 0.06); thud(330, 0.2, 0.1, 0.04); }
+  }
+
+  /* ---------- the bulb ring ---------- */
+  var BULBS = 28;
+  function layoutBulbs(){
+    var host = $("bulbs"), box = $("wheelbox");
+    var w = box.clientWidth || 430, r = w / 2 + 15;
+    if (host.children.length !== BULBS){
+      host.innerHTML = "";
+      for (var i = 0; i < BULBS; i++) host.appendChild(document.createElement("i"));
+    }
+    for (var k = 0; k < BULBS; k++){
+      var ang = (k / BULBS) * Math.PI * 2 - Math.PI / 2;
+      var el = host.children[k];
+      el.style.left = (w / 2 + Math.cos(ang) * r) + "px";
+      el.style.top  = (w / 2 + Math.sin(ang) * r) + "px";
+      el.style.animationDelay = ((k / BULBS) * 0.5).toFixed(3) + "s";
+    }
+  }
+  function bulbs(mode){
+    var host = $("bulbs");
+    host.className = "bulbs " + mode;
+    // restart the chase cleanly so the delays stay in step
+    for (var i = 0; i < host.children.length; i++){
+      var el = host.children[i], d = el.style.animationDelay;
+      el.style.animation = "none"; void el.offsetWidth;
+      el.style.animation = ""; el.style.animationDelay = d;
+    }
+  }
+
+  var order = [], step = 0, busy = false, autoRun = false;
+  var wheelList = [], rotation = 0, winnerIdx = -1;
+  var seed = 0, isAdmin = false, dbRef = null, connected = false;
+  var remoteStep = 0, applying = false;
+
+  // Every result is worked out from the seed before a single wheel turns, so
+  // all sixteen phones agree and the whole thing can be checked afterwards.
+  // A team that lands comes off the wheel entirely - every copy of it - so
+  // nobody can be dealt the same one.
+  function computeOrder(sd){
+    var pool = POT.slice(), out = [];
+    for (var i = 0; i < ORDER.length; i++){
+      if (!pool.length){ out.push({ n:ORDER[i].n, name:ORDER[i].name, club:null }); continue; }
+      var r = rng(hashSeed("pick|" + sd + "|" + i));
+      var pick = pool[Math.floor(r() * pool.length) % pool.length];
+      out.push({ n:ORDER[i].n, name:ORDER[i].name, club:pick });
+      pool = pool.filter(function(c){ return c !== pick; });
+    }
+    return out;
+  }
+  // The club that just landed. It stays on the wheel, lit up under the pointer,
+  // until the gaffer calls the next spin - then it comes off.
+  var pending = null;
+
+  var cv = $("wheel"), ctx = cv.getContext("2d");
+
+  function sizeCanvas(){
+    var box = $("wheelbox");
+    var w = box.clientWidth || 430;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = w * dpr; cv.height = w * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return w;
+  }
+
+  function drawWheel(){
+    var w = sizeCanvas(), r = w / 2, n = wheelList.length;
+    ctx.clearRect(0, 0, w, w);
+    if (!n) return;
+    var seg = (Math.PI * 2) / n;
+
+    for (var i = 0; i < n; i++){
+      var a0 = -Math.PI / 2 + i * seg, a1 = a0 + seg;
+      ctx.beginPath();
+      ctx.moveTo(r, r);
+      ctx.arc(r, r, r - 2, a0, a1);
+      ctx.closePath();
+      if (i === winnerIdx){
+        ctx.fillStyle = "#C9A951";
+      } else {
+        ctx.fillStyle = (i % 2) ? "#131C46" : "#0B1130";
+      }
+      ctx.fill();
+      ctx.strokeStyle = "rgba(46,67,144,.75)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // labels
+    var fs = n > 26 ? 12 : (n > 18 ? 14 : (n > 10 ? 17 : 21));
+    ctx.font = "600 " + fs + 'px "Oswald","Arial Narrow",sans-serif';
+    ctx.textBaseline = "middle";
+    var maxW = r - (r * 0.36) - 14;
+    for (var k = 0; k < n; k++){
+      var mid = -Math.PI / 2 + (k + 0.5) * seg;
+      var full = wheelList[k].toUpperCase(), label = full;
+      while (ctx.measureText(label).width > maxW && label.length > 4) label = label.slice(0, -1);
+      if (label !== full) label = label.slice(0, -1) + "…";
+
+      ctx.save();
+      ctx.translate(r, r);
+      ctx.fillStyle = (k === winnerIdx) ? "#1A1305" : "#DCE4FA";
+      // Segments on the left half get flipped so every label reads the right
+      // way up instead of half the wheel being upside down.
+      if (Math.cos(mid) < 0){
+        ctx.rotate(mid + Math.PI);
+        ctx.textAlign = "left";
+        ctx.fillText(label, -(r - 14), 0);
+      } else {
+        ctx.rotate(mid);
+        ctx.textAlign = "right";
+        ctx.fillText(label, r - 14, 0);
+      }
+      ctx.restore();
+    }
+    cv.style.transform = "rotate(" + rotation + "deg)";
+  }
+
+  // A proper visible mix before the first spin, so everyone sees the wheel
+  // scrambled rather than being handed an order they didn't watch happen.
+  function shuffleWheel(times){
+    if (busy) return Promise.resolve();
+    busy = true;
+    $("go").disabled = true; $("auto").disabled = true;
+    $("hub").textContent = "Mixing";
+    var left = times || 9;
+    return new Promise(function(done){
+      (function pass(){
+        if (!left){ done(); return; }
+        wheelList = shuffled(wheelList, hashSeed("mix|" + seed + "|" + left));
+        winnerIdx = -1;
+        drawWheel();
+        noise(0.10, 1500 + Math.random() * 1400, 0.7, 0.055);   // cards riffling
+        left--;
+        setTimeout(pass, 110);
+      })();
+    }).then(function(){
+      $("hub").textContent = "Ready";
+      busy = false;
+      $("go").disabled = false; $("auto").disabled = false;
+    });
+  }
+
+  function build(mix){
+    order = computeOrder(seed);
+    // scrambled from the seed, so every phone shows the same wheel
+    wheelList = shuffled(POT, hashSeed("layout|" + seed));
+    rotation = 0; winnerIdx = -1; step = 0; pending = null;
+    $("finale").hidden = true;
+    var st = document.querySelector(".stage");
+    st.hidden = false; st.classList.remove("away");
+    $("wheelbox").classList.remove("landed");
+    $("hub").textContent = "Spin up";
+    $("leftN").textContent = wheelList.length;
+    $("ncLab").textContent = "Ready";
+    $("ncName").textContent = "Draw not started";
+    $("verdict").textContent = ""; $("verdict").className = "verdict";
+    $("go").disabled = false; $("auto").disabled = false;
+    $("go").textContent = "Spin for #" + order[0].n + " " + order[0].name;
+    $("centre").classList.remove("win");
+    renderBoard();
+    drawWheel();
+    layoutBulbs();
+    bulbs("idle");
+    if (mix) shuffleWheel(9);
+  }
+
+  // Someone opening the page halfway through shouldn't watch six spins of
+  // catch-up - they land straight on where everyone else is.
+  function jumpTo(target){
+    build(false);
+    for (var i = 0; i < target && i < order.length; i++){
+      var club = order[i].club;
+      if (club) wheelList = wheelList.filter(function(c){ return c !== club; });
+    }
+    step = Math.min(target, order.length);
+    pending = null; winnerIdx = -1;
+    $("leftN").textContent = wheelList.length;
+    renderBoard();
+    drawWheel();
+    if (step >= order.length){
+      $("go").disabled = true; $("auto").disabled = true;
+      $("go").textContent = "All drawn";
+      $("ncLab").textContent = "That's the lot";
+      $("ncName").textContent = order.length + " teams dealt";
+      showFinale(true);
+    } else if (step > 0){
+      var o = order[step - 1];
+      $("ncLab").textContent = "Last out";
+      $("ncName").innerHTML = '<span class="no">#' + o.n + '</span>' + o.name;
+      $("verdict").textContent = o.name + " gets " + o.club;
+      $("verdict").className = "verdict hit";
+      $("go").textContent = "Spin for #" + order[step].n + " " + order[step].name;
+    }
+  }
+
+  function renderBoard(){
+    var b = $("board"); b.innerHTML = "";
+    if (!step){ b.innerHTML = '<p class="empty">Nothing drawn yet</p>'; return; }
+    for (var i = 0; i < step; i++){
+      var o = order[i];
+      var row = document.createElement("div"); row.className = "brow";
+      var n = document.createElement("span"); n.className = "n"; n.textContent = o.n;
+      var who = document.createElement("span"); who.className = "who";
+      who.appendChild(document.createTextNode(o.name));
+      var got = document.createElement("span"); got.className = "got"; got.textContent = o.club;
+      who.appendChild(got);
+      row.appendChild(n); row.appendChild(who); b.appendChild(row);
+    }
+  }
+
+  var wait = function(ms){ return new Promise(function(r){ setTimeout(r, ms); }); };
+
+  function countdown(){
+    var box = $("wheelbox");
+    return new Promise(function(done){
+      var n = 3;
+      (function step(){
+        var old = box.querySelector(".count3");
+        if (old) old.remove();
+        if (n === 0){ done(); return; }
+        var d = document.createElement("div"); d.className = "count3"; d.textContent = n;
+        box.appendChild(d); beep(3 - n); n--;
+        setTimeout(step, 620);
+      })();
+    });
+  }
+
+  function turn(from, to, dur, ease){
+    var segDeg = 360 / Math.max(1, wheelList.length), acc = 0;
+    return new Promise(function(done){
+      var t0 = performance.now(), last = from;
+      requestAnimationFrame(function frame(now){
+        var p = Math.min(1, (now - t0) / dur);
+        var deg = from + (to - from) * ease(p);
+        cv.style.transform = "rotate(" + deg + "deg)";
+        var v = Math.abs(deg - last); last = deg;
+        // one click per segment that actually passes the pointer
+        acc += v;
+        while (acc >= segDeg){ acc -= segDeg; tick(); }
+        $("pointer").classList.toggle("tick", v > 1.4);
+        if (p < 1) requestAnimationFrame(frame);
+        else { rotation = to; $("pointer").classList.remove("tick"); done(); }
+      });
+    });
+  }
+  // Constant friction, like a real wheel. Steeper curves (quint and friends)
+  // finish almost all their travel in the first 80% and then look like they've
+  // stopped dead - which is what made the old version feel rigged.
+  var easeWheel = function(p){ return 1 - Math.pow(1 - p, 2.15); };
+
+  // rotation that puts segment i under the pointer at the top
+  function restFor(i, n, spins){
+    var seg = 360 / n;
+    var base = -(i * seg + seg / 2);
+    return base - 360 * spins;
+  }
+
+  function spinTo(club, idxStep){
+    var n = wheelList.length;
+    // A team nominated more than once sits on the wheel more than once, so
+    // pick which of its wedges we land in - seeded, so every phone matches.
+    var hits = [];
+    for (var h = 0; h < n; h++){ if (wheelList[h] === club) hits.push(h); }
+    if (!hits.length) return Promise.resolve();
+    var r = rng(hashSeed("spin|" + seed + "|" + idxStep));
+    var idx = hits[Math.floor(r() * hits.length) % hits.length];
+    var seg = 360 / n;
+
+    // One spin, start to finish. It slows the whole way down and ticks through
+    // the last few segments - the suspense is the deceleration, nothing else.
+    var spins = 6 + Math.floor(r() * 3);
+    // stop somewhere inside the wedge rather than dead centre every time
+    var jitter = (r() * 0.62 - 0.31) * seg;
+    var target = -(idx * seg + seg / 2) + jitter;
+    while (target < rotation + spins * 360) target += 360;   // clockwise
+
+    bulbs("run");
+    return turn(rotation, target, 7600, easeWheel)
+      .then(function(){
+        winnerIdx = idx;
+        $("wheelbox").classList.add("landed");
+        $("centre").classList.add("win");
+        bulbs("win");
+        $("hub").textContent = club;
+        drawWheel();
+        chime();
+      });
+  }
+
+  // Takes the last winner off the wheel. Runs at the start of the NEXT spin,
+  // so the result stays on screen as long as the gaffer wants it there.
+  function clearPending(){
+    if (!pending) return Promise.resolve();
+    // every copy of it, not just the wedge it landed in
+    wheelList = wheelList.filter(function(c){ return c !== pending; });
+    pending = null;
+    winnerIdx = -1;
+    $("wheelbox").classList.remove("landed");
+    $("centre").classList.remove("win");
+    bulbs("idle");
+    $("leftN").textContent = wheelList.length;
+    drawWheel();
+    return Promise.resolve();
+  }
+
+  function drawOne(){
+    if (busy || step >= order.length) return Promise.resolve();
+    busy = true;
+    $("go").disabled = true; $("auto").disabled = true;
+
+    var o = order[step], card = $("namecard");
+    $("verdict").textContent = ""; $("verdict").className = "verdict";
+    $("ncLab").textContent = "Now drawing";
+    $("ncName").innerHTML = '<span class="no">#' + o.n + '</span>' + o.name;
+    card.classList.remove("in"); void card.offsetWidth; card.classList.add("in");
+
+    return wait(260)
+      .then(clearPending)
+      .then(function(){ return wait(280); })
+      .then(function(){ $("hub").textContent = "#" + o.n; return countdown(); })
+      .then(function(){ return spinTo(o.club, step); })
+      .then(function(){
+        $("verdict").textContent = o.name + " gets " + o.club;
+        $("verdict").className = "verdict hit";
+        // Left on the wheel, lit gold under the pointer, until the next spin.
+        pending = o.club;
+        step++;
+        renderBoard();
+        busy = false;
+        var finished = step >= order.length;
+        $("go").disabled = finished; $("auto").disabled = finished;
+        $("go").textContent = finished ? "All drawn" : ("Spin for #" + order[step].n + " " + order[step].name);
+        if (finished){
+          $("ncLab").textContent = "That's the lot";
+          $("ncName").textContent = order.length + " teams dealt";
+          fanfare(); confetti(6); autoRun = false;
+          // let the confetti and the last result land, then retire the wheel
+          setTimeout(showFinale, 3400);
+        }
+        // Play all gives everyone a beat to see it before moving on.
+        return wait(finished ? 0 : 1900);
+      });
+  }
+
+  /* ---------- live sync: the gaffer moves the step, everyone follows ---------- */
+
+  function pushStep(n, newSeed){
+    if (!dbRef) return;
+    var payload = { step: n, seed: (newSeed || seed), at: Date.now() };
+    dbRef.set(payload);
+  }
+
+  // Walk the local view up to whatever the gaffer is on.
+  function follow(){
+    if (applying || busy) return;
+    if (remoteStep === step) return;
+    if (remoteStep < step){ jumpTo(remoteStep); return; }
+    if (remoteStep - step > 1){ jumpTo(remoteStep); return; }
+    applying = true;
+    drawOne().then(function(){ applying = false; follow(); });
+  }
+
+  // Advance the TARGET, not the local step - a press landing during the beat
+  // after a result still counts instead of being swallowed.
+  function callNext(){
+    var target = Math.max(step, remoteStep) + 1;
+    if (target > order.length) return;
+    if (dbRef) pushStep(target);
+    else { remoteStep = target; follow(); }
+  }
+  $("go").onclick = function(){ autoRun = false; callNext(); };
+  // Once every club is dealt the wheel has done its job. It steps aside and the
+  // full list takes the screen - that's what people will screenshot.
+  function showFinale(quiet){
+    var grid = $("finGrid"); grid.innerHTML = "";
+    order.forEach(function(o, i){
+      var c = document.createElement("div");
+      c.className = "fincard";
+      c.style.animationDelay = (i * 0.075).toFixed(2) + "s";
+      var n = document.createElement("span"); n.className = "no"; n.textContent = o.n;
+      var w = document.createElement("span"); w.className = "nm";
+      w.appendChild(document.createTextNode(o.name));
+      var cl = document.createElement("span"); cl.className = "cl"; cl.textContent = o.club;
+      w.appendChild(cl);
+      c.appendChild(n); c.appendChild(w);
+      grid.appendChild(c);
+    });
+    $("finSub").textContent = order.length + " players · drawn live · no swaps from here";
+    $("finFoot").hidden = !isAdmin;
+    document.querySelector(".stage").classList.add("away");
+    setTimeout(function(){
+      document.querySelector(".stage").hidden = true;
+      $("finale").hidden = false;
+      if (!quiet){
+        $("finale").scrollIntoView({ behavior: "smooth", block: "start" });
+        order.forEach(function(_, i){ setTimeout(tick, 300 + i * 75); });
+      }
+    }, quiet ? 0 : 700);
+  }
+
+  $("snd").onclick = function(){ setSound(!soundOn); };
+
+  function restart(){
+    if (busy) return;
+    autoRun = false;
+    var fresh = (Math.random() * 4294967295) >>> 0;
+    if (dbRef) pushStep(0, fresh);
+    else { seed = fresh; remoteStep = 0; build(true); }
+  }
+  $("reset").onclick = restart;
+  $("finAgain").onclick = restart;
+
+  $("auto").onclick = function(){
+    if (busy) return;
+    autoRun = true;
+    (function loop(){
+      if (!autoRun || Math.max(step, remoteStep) >= order.length) return;
+      callNext();
+      setTimeout(function(){ if (autoRun) loop(); }, 13500);
+    })();
+  };
+
+  var confettiCv = null, confettiRun = false;
+  function confetti(seconds){
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (confettiRun) return;
+    if (!confettiCv){
+      confettiCv = document.createElement("canvas");
+      confettiCv.id = "confetti"; document.body.appendChild(confettiCv);
+    }
+    var c = confettiCv, x = c.getContext("2d");
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var W = window.innerWidth, H = window.innerHeight;
+    c.width = W*dpr; c.height = H*dpr; x.setTransform(dpr,0,0,dpr,0,0);
+    var cols = ["#7FA6FF","#E7C878","#EDF1FC","#5BD6A4","#9BB4E8"], bits = [];
+    var count = Math.round(Math.max(70, Math.min(170, W/7)));
+    for (var i = 0; i < count; i++){
+      bits.push({ x:Math.random()*W, y:-20-Math.random()*H*0.6, w:6+Math.random()*7, h:9+Math.random()*11,
+                  vy:2.2+Math.random()*3.6, vx:-1.4+Math.random()*2.8,
+                  rot:Math.random()*Math.PI, vr:-0.14+Math.random()*0.28,
+                  c:cols[(Math.random()*cols.length)|0] });
+    }
+    confettiRun = true;
+    var stop = Date.now() + (seconds||4)*1000;
+    (function frame(){
+      x.clearRect(0,0,W,H);
+      var alive = 0;
+      for (var i = 0; i < bits.length; i++){
+        var b = bits[i];
+        b.x += b.vx; b.y += b.vy; b.rot += b.vr; b.vy += 0.035;
+        if (b.y < H + 40) alive++;
+        x.save(); x.translate(b.x,b.y); x.rotate(b.rot);
+        x.fillStyle = b.c; x.fillRect(-b.w/2,-b.h/2,b.w,b.h); x.restore();
+      }
+      if (alive && Date.now() < stop + 2500) requestAnimationFrame(frame);
+      else { x.clearRect(0,0,W,H); confettiRun = false; }
+    })();
+  }
+
+  var rt = null;
+  window.addEventListener("resize", function(){
+    clearTimeout(rt); rt = setTimeout(function(){ drawWheel(); layoutBulbs(); }, 180);
+  });
+
+  /* ---------- boot ---------- */
+
+  function setLive(cls, txt){
+    $("livebar").className = "livebar" + (cls ? " " + cls : "");
+    $("liveText").textContent = txt;
+  }
+
+  function sanityCheck(){
+    var uniq = {}, n = 0;
+    POT.forEach(function(c){ if (!uniq[c]){ uniq[c] = 1; n++; } });
+    if (n < ORDER.length){
+      setLive("bad", "Only " + n + " different teams for " + ORDER.length + " players");
+      return false;
+    }
+    return true;
+  }
+
+  isAdmin = (location.hash || "").toLowerCase().indexOf(ADMIN_KEY.toLowerCase()) > -1;
+  $("controls").hidden = !isAdmin;
+  $("roleTag").textContent = isAdmin ? "Gaffer" : "Watching";
+  if (isAdmin) $("waiting").hidden = true;
+
+  seed = 1;                 // replaced by whatever is in the database
+  build(false);
+  sanityCheck();
+
+  (function connect(){
+    if (!window.firebase || !FIREBASE_CONFIG.apiKey){
+      setLive("bad", "Offline · this screen only");
+      return;
+    }
+    try {
+      if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+      var db = firebase.database();
+      dbRef = db.ref(DB_PATH + "/state");
+
+      db.ref(".info/connected").on("value", function(snap){
+        connected = !!snap.val();
+        if (!connected){ setLive("bad", "Reconnecting…"); return; }
+        setLive("on", isAdmin ? "Live · you are driving" : "Live");
+        // presence, so everyone can see the room filling up
+        var me = db.ref(DB_PATH + "/watch").push();
+        me.onDisconnect().remove();
+        me.set(Date.now());
+      });
+
+      db.ref(DB_PATH + "/watch").on("value", function(snap){
+        var n = snap.numChildren() || 1;
+        $("watchers").hidden = false;
+        $("watch").textContent = n + " watching";
+      });
+
+      dbRef.on("value", function(snap){
+        var v = snap.val();
+        if (!v){
+          // nothing in the database yet - the gaffer's first spin creates it
+          if (isAdmin){ $("waiting").hidden = true; }
+          return;
+        }
+        var sd = v.seed || 1, st = v.step || 0;
+        if (sd !== seed){
+          seed = sd;
+          remoteStep = st;
+          build(st === 0);
+          if (st > 0) jumpTo(st);
+          return;
+        }
+        remoteStep = st;
+        if (!isAdmin && st > 0) $("waiting").hidden = true;
+        follow();
+      });
+    } catch(e){
+      setLive("bad", "Offline · this screen only");
+    }
+  })();
+
+  $("buildTag") && ($("buildTag").textContent = BUILD);
+})();
+</script>
+</body>
+</html>
