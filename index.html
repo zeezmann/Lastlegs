@@ -858,7 +858,7 @@
 
   <section id="fixtureSec" hidden>
     <div class="sec-head">
-      <h2>Fixtures &amp; results</h2>
+      <h2 id="fixtureTitle">Fixtures &amp; results</h2>
       <span class="sec-note">Play in any order &middot; all 14 done by Sat 19 Sept</span>
     </div>
     <div class="filterbar">
@@ -872,6 +872,14 @@
       </div>
     </div>
     <div id="fixtures"></div>
+  </section>
+
+  <section id="handSec" hidden>
+    <div class="sec-head">
+      <h2>Clubs for the knockouts</h2>
+      <span class="sec-note" id="handNote"></span>
+    </div>
+    <div id="handBody"></div>
   </section>
 
   <section id="koSec" hidden>
@@ -901,7 +909,7 @@
     </details>
   </section>
 
-  <section>
+  <section id="rulesSec">
     <div class="sec-head">
       <h2>How it runs</h2>
       <span class="sec-note">Read it before you moan</span>
@@ -991,7 +999,7 @@
 
   // Bumped every time this file changes. Shown in the footer so you can tell at
   // a glance whether the copy being served is the copy you uploaded.
-  var BUILD = "v27";
+  var BUILD = "v30";
 
   /* ============================================================ */
 
@@ -2309,7 +2317,6 @@
 
   var celebrated = {};
   var ROUND_NAMES = ["Quarter-finals","Semi-finals","Final"];
-  var ROUND_DL = ["By Mon 21","By Tue 22","By Thu 24"];
 
   function koCard(comp, idx){
     var st = tieState(comp, idx), cd = compData(comp);
@@ -2390,7 +2397,7 @@
       var col = document.createElement("div"); col.className = "round";
       var h = document.createElement("h4"); h.innerHTML = '<span></span><em></em>';
       h.querySelector("span").textContent = ROUND_NAMES[r];
-      h.querySelector("em").textContent = ROUND_DL[r];
+      h.querySelector("em").textContent = "";
       col.appendChild(h);
       for (var i = 0; i < cd.def.length; i++){
         if (cd.def[i].round === r) col.appendChild(koCard(comp, i));
@@ -2646,6 +2653,35 @@
     host.appendChild(grid);
   }
 
+  /* ---------- section order ----------
+     The page is read differently at each stage. During the groups people want
+     the table; once the knockouts start the bracket is the only thing anyone
+     opens the page for, and the group tables become a record rather than news.
+     Only the order of existing sections changes - nothing is rebuilt. */
+
+  var GROUP_ORDER = ["chaseSec","claimSec","resultSec","ladderSec","mineSec","projSec",
+                     "recSec","teamSec","fixtureSec","koSec","verifySec"];
+  var KO_ORDER    = ["koSec","mineSec","handSec","recSec","resultSec","ladderSec",
+                     "fixtureSec","teamSec","claimSec","verifySec","projSec","chaseSec"];
+
+  function orderSections(){
+    var wrap = document.querySelector(".wrap");
+    if (!wrap) return;
+    var rules = document.getElementById("rulesSec");
+    var want = (result && groupsComplete()) ? KO_ORDER : GROUP_ORDER;
+    want.forEach(function(id){
+      var el = document.getElementById(id);
+      if (!el || el.parentNode !== wrap) return;
+      wrap.insertBefore(el, rules || null);
+    });
+    // Headings that stop making sense once the groups are history
+    var done = !!(result && groupsComplete());
+    var tt = $("tableTitle");
+    if (tt && result) tt.textContent = done ? "Final group tables" : "Groups & table";
+    var fx = $("fixtureTitle");
+    if (fx) fx.textContent = done ? "Group stage results" : "Fixtures & results";
+  }
+
   /* ---------- the live draw ----------
      The draw is its own document opened over the page. It is sandboxed, so it
      cannot touch anything here - not the results, not the tables, not a single
@@ -2655,7 +2691,10 @@
   // The gaffer can see the draw from the moment this is uploaded, so he can
   // rehearse. Everyone else only gets the bar from this time onwards - local
   // time on their own phone, which is what they'd expect.
-  var DRAW_OPENS = new Date(2026, 8, 17, 18, 25).getTime();   // Thu 17 Sept, 18:25
+  // One fixed moment worldwide, not "18:25 on your own clock". 17:25 UTC is
+  // 18:25 in the UK and 19:25 in France on this date, so everybody gets the
+  // bar at the same instant, twenty minutes before the first spin.
+  var DRAW_OPENS = Date.UTC(2026, 8, 17, 17, 25);
   var drawState = null, drawOpen = false;
 
   function renderDraw(){
@@ -3024,7 +3063,7 @@
       ? (pl ? ("Live · " + pl + " of " + TOTAL_LEGS + " group games in") : "Groups drawn")
       : (n >= PLAYERS ? "All numbers in · ready to draw" : "Draw sealed · " + (PLAYERS-n) + " numbers free");
     $("seedTag").textContent = result ? ("Draw seed " + result.seed.toString(16).toUpperCase()) : "";
-    $("tableTitle").textContent = (result && pl) ? "Groups & table" : "The draw";
+    if (!(result && groupsComplete())) $("tableTitle").textContent = (result && pl) ? "Groups & table" : "The draw";
     $("resetBtn").hidden = !isAdmin;
     // Spectators just see the build. The draw counter is gaffer-only.
     $("buildTag").textContent = "Build " + BUILD + ((isAdmin && S.rd) ? (" · draw " + (S.rd + 1)) : "");
@@ -3054,7 +3093,7 @@
   // Rebuilding those under the cursor is what used to eat half-typed scores.
   function renderScoreDependents(){
     standCache = null;
-    renderStatus(); renderBoard(); renderResult(); renderLadder(); renderMine(); renderProjection(); renderRecords(); renderBoot(); renderChase(); renderDraw(); renderKO(); stampSeen();
+    renderStatus(); renderBoard(); renderResult(); renderLadder(); renderMine(); renderProjection(); renderRecords(); renderBoot(); renderChase(); renderDraw(); renderKO(); orderSections(); stampSeen();
   }
 
   function typingInAScoreBox(){
@@ -3068,9 +3107,8 @@
     var claim = $("claimSec"), verify = $("verifySec"), res = $("resultSec");
     if (!claim || !verify || !res || !claim.parentNode) return;
     var wantDown = !!(S.lk && result);
-    var isDown = claim.nextElementSibling === verify;
-    if (wantDown && !isDown) verify.parentNode.insertBefore(claim, verify);
-    else if (!wantDown && claim.nextElementSibling !== res) res.parentNode.insertBefore(claim, res);
+    // Where it sits is orderSections' job now - this only handles the wording.
+    if (!wantDown && claim.nextElementSibling !== res) res.parentNode.insertBefore(claim, res);
     $("claimTitle").textContent = wantDown ? "The numbers that were called" : "The numbers";
     var nf = $("numFold");
     if (nf){
@@ -3112,7 +3150,7 @@
     } else { result = null; ties = []; }
     renderNames(); renderClubRule(); placeClaimSec();
     renderLive(); renderStatus(); renderBoard(); renderGrid(); renderClaimBox();
-    renderResult(); renderLadder(); renderMine(); renderProjection(); renderRecords(); renderBoot(); renderChase(); renderDraw();
+    renderResult(); renderLadder(); renderMine(); renderProjection(); renderRecords(); renderBoot(); renderChase(); renderDraw(); orderSections();
     renderTeams(); renderFixtures(); renderKO(); renderVerify();
     stampSeen();
     firstPaint = false;
