@@ -305,8 +305,12 @@
     appId: "1:612697629060:web:22ca8e2f069c3dbd8d3dd1"
   };
   var DB_PATH  = "lastlegs/draw";
+  // The draw has been run. Locked so a stray tap can't wipe the result - the
+  // site reads the same seed, so a re-run would silently change everyone's
+  // club. Set this back to false to run another draw.
+  var LOCKED = true;
   var ADMIN_KEY = "gaffer7742";
-  var BUILD = "d3";
+  var BUILD = "d4";
 
 
   var $ = function(id){ return document.getElementById(id); };
@@ -887,7 +891,7 @@
       grid.appendChild(c);
     });
     $("finSub").textContent = order.length + " players · drawn live · no swaps from here";
-    $("finFoot").hidden = !isAdmin;
+    $("finFoot").hidden = !isAdmin || LOCKED;
     document.querySelector(".stage").classList.add("away");
     setTimeout(function(){
       document.querySelector(".stage").hidden = true;
@@ -902,7 +906,7 @@
   $("snd").onclick = function(){ setSound(!soundOn); };
 
   function restart(){
-    if (busy) return;
+    if (LOCKED || busy) return;
     autoRun = false;
     var fresh = (Math.random() * 4294967295) >>> 0;
     if (dbRef) pushStep(0, fresh);
@@ -982,6 +986,11 @@
 
   isAdmin = (location.hash || "").toLowerCase().indexOf(ADMIN_KEY.toLowerCase()) > -1;
   $("controls").hidden = !isAdmin;
+  if (LOCKED){
+    $("reset").hidden = true;
+    $("auto").hidden = true;
+    $("go").hidden = true;
+  }
   $("roleTag").textContent = isAdmin ? "Gaffer" : "Watching";
   if (isAdmin) $("waiting").hidden = true;
 
