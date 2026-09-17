@@ -843,7 +843,7 @@
   <section id="mineSec" hidden>
     <div class="sec-head">
       <h2>Your tournament</h2>
-      <span class="sec-note">Whoever you picked in the fixtures</span>
+      <span class="sec-note">Tap your name under Group stage results</span>
     </div>
     <div class="mine">
       <div class="mhead">
@@ -891,19 +891,24 @@
   <section id="fixtureSec" hidden>
     <div class="sec-head">
       <h2 id="fixtureTitle">Fixtures &amp; results</h2>
-      <span class="sec-note">Play in any order &middot; all 14 done by Sat 19 Sept</span>
+      <span class="sec-note" id="fixNote">Play in any order</span>
     </div>
     <div class="filterbar">
       <div class="filtergrp">
         <span class="flabel">Player</span>
         <div class="chips" id="chips"></div>
       </div>
-      <div class="filtergrp">
-        <span class="flabel">Status</span>
-        <div class="chips" id="statusChips"></div>
-      </div>
     </div>
-    <div id="fixtures"></div>
+    <details class="fold" id="fixFold" open>
+      <summary id="fixSummary">Show the fixtures</summary>
+      <div class="filterbar">
+        <div class="filtergrp">
+          <span class="flabel">Status</span>
+          <div class="chips" id="statusChips"></div>
+        </div>
+      </div>
+      <div id="fixtures"></div>
+    </details>
   </section>
 
   <section id="handSec" hidden>
@@ -1031,7 +1036,7 @@
 
   // Bumped every time this file changes. Shown in the footer so you can tell at
   // a glance whether the copy being served is the copy you uploaded.
-  var BUILD = "v40";
+  var BUILD = "v42";
 
   /* ============================================================ */
 
@@ -1930,6 +1935,8 @@
   /* ---------- overall ladder ---------- */
 
   function renderLadder(){
+    // Bragging rights during the groups; duplication once they're finished.
+    if (result && groupsComplete()){ $("ladderSec").hidden = true; return; }
     var sec = $("ladderSec");
     if (!result){ sec.hidden = true; return; }
     sec.hidden = false;
@@ -2204,6 +2211,19 @@
     var sec = $("fixtureSec");
     if (!result){ sec.hidden = true; return; }
     sec.hidden = false;
+
+    // Finished football. It shuts itself once the groups are done, and stays
+    // however the viewer leaves it after that.
+    var ff = $("fixFold"), done = groupsComplete();
+    if (ff){
+      var fn = $("fixNote");
+      if (fn) fn.textContent = done ? "The full group-stage record" : "Play in any order";
+      $("fixSummary").textContent = done
+        ? ("Show all " + TOTAL_LEGS + " group legs")
+        : "Show the fixtures";
+      var mode = done ? "after" : "during";
+      if (ff.dataset.mode !== mode){ ff.open = !done; ff.dataset.mode = mode; }
+    }
 
     var chips = $("chips"); chips.innerHTML = "";
     var all = document.createElement("button");
@@ -2495,6 +2515,41 @@
     return null;
   }
 
+  // Which knockout tie a player is in, and how it is going. Returns null if
+  // the brackets haven't reached them yet.
+  function myTie(num){
+    var me = nameOf(num);
+    if (!me) return null;
+    var live = null, out = null;
+    ["cup","spoon"].forEach(function(comp){
+      var cd = compData(comp);
+      for (var i = 0; i < cd.def.length; i++){
+        var st = tieState(comp, i);
+        if (st.a.name !== me && st.b.name !== me) continue;
+        var mine = st.a.name === me;
+        // Aggregate as it stands, so one leg in still shows a scoreline
+        // rather than a blank.
+        var ga = 0, gb = 0, legsIn = 0;
+        [st.l1, st.l2].forEach(function(L){
+          if (!L) return;
+          legsIn++; ga += L[0]; gb += L[1];
+        });
+        var row = {
+          comp: comp, id: st.def.id, round: st.def.round, st: st, legsIn: legsIn,
+          opp: mine ? st.b.name : st.a.name,
+          agg: legsIn ? (mine ? ga : gb) : null,
+          oppAgg: legsIn ? (mine ? gb : ga) : null,
+          won: st.winner === me,
+          decided: !!st.winner
+        };
+        if (!row.decided) { if (!live) live = row; }
+        else if (!row.won) out = row;
+        else if (!live && (!out)) live = row;   // won it, waiting on the next round
+      }
+    });
+    return live || out;
+  }
+
   function renderMine(){
     var sec = $("mineSec");
     if (!sec) return;
@@ -2511,16 +2566,31 @@
     for (var i = 0; i < legs.length; i++){ if (!legs[i].played){ next = legs[i]; break; } }
 
     $("mineWho").textContent = nameOf(num);
-    var club = clubOf(num, "g");
-    $("mineClub").textContent = club || "";
+    $("mineClub").textContent = koClub(num) || "";
 
     var r = info.row;
+    var tie = groupsComplete() ? myTie(num) : null;
     $("mineStat").innerHTML = "";
-    [[ordinal(info.pos) + " in Group " + info.group, "position"],
-     [r.pts + " pts", r.w + "W " + r.d + "D " + r.l + "L"],
-     [(r.gd > 0 ? "+" : "") + r.gd + " GD", r.gf + " scored, " + r.ga + " shipped"],
-     [played + " of 14", left ? (left + " legs left") : "all played"]
-    ].forEach(function(pair){
+    var cells;
+    if (tie){
+      var compName = tie.comp === "cup" ? CUP_NAME : SPOON_NAME;
+      var legsIn = tie.legsIn;
+      cells = [
+        [ROUND_NAMES[tie.round], compName],
+        [tie.opp, "your opponent"],
+        [(tie.agg === null || tie.agg === undefined)
+            ? "Not played" : (tie.agg + "\u2013" + tie.oppAgg),
+         legsIn === 2 ? "on aggregate" : (legsIn === 1 ? "after one leg" : "two legs to play")],
+        [ordinal(info.pos) + " in Group " + info.group,
+         r.pts + " pts \u00b7 " + (r.gd > 0 ? "+" : "") + r.gd + " GD"]
+      ];
+    } else {
+      cells = [[ordinal(info.pos) + " in Group " + info.group, "position"],
+       [r.pts + " pts", r.w + "W " + r.d + "D " + r.l + "L"],
+       [(r.gd > 0 ? "+" : "") + r.gd + " GD", r.gf + " scored, " + r.ga + " shipped"],
+       [played + " of 14", left ? (left + " legs left") : "all played"]];
+    }
+    cells.forEach(function(pair){
       var b = document.createElement("div"); b.className = "mstat";
       var big = document.createElement("b"); big.textContent = pair[0];
       var sub = document.createElement("span"); sub.textContent = pair[1];
@@ -2529,11 +2599,23 @@
     });
 
     var nx = $("mineNext");
-    if (next){
-      var oc = clubOf(next.opp, "g");
+    if (tie){
+      var oNum = numOf(tie.opp), oc = oNum ? koClub(oNum) : "";
+      var lab = tie.decided
+        ? (tie.won ? "Through to the " + ROUND_NAMES[tie.round + 1] : "Knocked out by")
+        : "Knockout tie";
+      nx.innerHTML = '<span class="lbl"></span><b></b><em></em>';
+      nx.querySelector(".lbl").textContent = lab;
+      nx.querySelector("b").textContent = tie.decided && tie.won
+        ? (tie.round + 1 < ROUND_NAMES.length ? "Beat " + tie.opp : "Champion")
+        : tie.opp;
+      nx.querySelector("em").textContent = oc ? oc : "";
+      nx.hidden = false;
+    } else if (next){
+      var oc2 = clubOf(next.opp, "g");
       nx.innerHTML = '<span class="lbl">Next up</span><b></b><em></em>';
       nx.querySelector("b").textContent = nameOf(next.opp);
-      nx.querySelector("em").textContent = oc ? oc : "";
+      nx.querySelector("em").textContent = oc2 ? oc2 : "";
       nx.hidden = false;
     } else { nx.hidden = true; }
 
@@ -2737,8 +2819,9 @@
 
   var GROUP_ORDER = ["chaseSec","claimSec","resultSec","ladderSec","mineSec","projSec",
                      "recSec","teamSec","fixtureSec","koSec","verifySec"];
-  var KO_ORDER    = ["koSec","mineSec","handSec","recSec","resultSec","ladderSec",
-                     "fixtureSec","teamSec","claimSec","verifySec","projSec","chaseSec"];
+  var KO_ORDER    = ["koSec","mineSec","handSec","recSec","resultSec",
+                     "fixtureSec","teamSec","claimSec","verifySec",
+                     "ladderSec","projSec","chaseSec"];
 
   function orderSections(){
     var wrap = document.querySelector(".wrap");
