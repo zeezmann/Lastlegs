@@ -398,9 +398,9 @@
     .drawbar .db-t{flex:1 0 100%;font-size:21px;order:2}
     .drawbar .db-go{order:3}
   }
-  .drawwrap{position:fixed;inset:0;z-index:70;background:var(--ground-2)}
+  .drawwrap{position:fixed;inset:0;z-index:9000;background:var(--ground-2);overflow:hidden}
   .drawwrap iframe{width:100%;height:100%;border:0;display:block}
-  .drawclose{position:fixed;top:14px;right:14px;z-index:71;cursor:pointer;
+  .drawclose{position:fixed;top:14px;right:14px;z-index:9001;cursor:pointer;
              padding:9px 15px;border:1px solid var(--line);background:rgba(5,9,26,.82);
              color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:.13em;
              text-transform:uppercase}
@@ -723,11 +723,6 @@
       <span class="db-go">Open</span>
     </button>
 
-    <div class="drawwrap" id="drawWrap" hidden>
-      <button class="drawclose" id="drawClose" type="button" aria-label="Close the draw">Close ✕</button>
-      <iframe id="drawFrame" title="Knockout club draw" sandbox="allow-scripts allow-same-origin"></iframe>
-    </div>
-
     <section id="chaseSec" hidden>
       <div class="sec-head">
         <h2>Still to play</h2>
@@ -996,7 +991,7 @@
 
   // Bumped every time this file changes. Shown in the footer so you can tell at
   // a glance whether the copy being served is the copy you uploaded.
-  var BUILD = "v26";
+  var BUILD = "v27";
 
   /* ============================================================ */
 
@@ -3207,5 +3202,10 @@
   renderAll();
 })();
 </script>
+<div class="drawwrap" id="drawWrap" hidden>
+  <button class="drawclose" id="drawClose" type="button" aria-label="Close the draw">Close ✕</button>
+  <iframe id="drawFrame" title="Knockout club draw" sandbox="allow-scripts allow-same-origin"></iframe>
+</div>
+
 </body>
 </html>
