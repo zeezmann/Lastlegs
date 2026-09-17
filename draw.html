@@ -309,8 +309,23 @@
   // site reads the same seed, so a re-run would silently change everyone's
   // club. Set this back to false to run another draw.
   var LOCKED = true;
+
+  // What the wheel actually landed on, on the night. Written down so the
+  // board survives whatever happens to the database.
+  var RESULT = {
+    1:  "Osasuna",      // Olamix
+    2:  "Fulham",       // David
+    3:  "Lyon",         // Adexzy
+    4:  "Gladbach",     // Salvage
+    8:  "Al Nassr",     // Ekene
+    10: "Ajax",         // Dee
+    11: "Everton",      // ZeezMann
+    13: "Brentford",    // Mayor
+    14: "Bournemouth",  // Collins
+    16: "FC Porto"      // Pyrex
+  };
   var ADMIN_KEY = "gaffer7742";
-  var BUILD = "d4";
+  var BUILD = "d5";
 
 
   var $ = function(id){ return document.getElementById(id); };
@@ -539,6 +554,11 @@
   // A team that lands comes off the wheel entirely - every copy of it - so
   // nobody can be dealt the same one.
   function computeOrder(sd){
+    if (RESULT){
+      return ORDER.map(function(p){
+        return { n:p.n, name:p.name, club: RESULT[p.n] || null };
+      });
+    }
     var pool = POT.slice(), out = [];
     for (var i = 0; i < ORDER.length; i++){
       if (!pool.length){ out.push({ n:ORDER[i].n, name:ORDER[i].name, club:null }); continue; }
@@ -998,6 +1018,13 @@
   build(false);
   sanityCheck();
 
+  // Locked with a result on file: this page is the record of the draw, so it
+  // opens on the board and ignores whatever the database says.
+  if (LOCKED && RESULT){
+    jumpTo(ORDER.length);
+    $("waiting").hidden = true;
+  }
+
   (function connect(){
     if (!window.firebase || !FIREBASE_CONFIG.apiKey){
       setLive("bad", "Offline · this screen only");
@@ -1025,6 +1052,7 @@
       });
 
       dbRef.on("value", function(snap){
+        if (LOCKED && RESULT) return;   // the board is written down; leave it alone
         var v = snap.val();
         if (!v){
           // nothing in the database yet - the gaffer's first spin creates it

@@ -1031,7 +1031,7 @@
 
   // Bumped every time this file changes. Shown in the footer so you can tell at
   // a glance whether the copy being served is the copy you uploaded.
-  var BUILD = "v39";
+  var BUILD = "v40";
 
   /* ============================================================ */
 
@@ -2787,21 +2787,23 @@
     "AS Monaco","Gladbach","Bologna","Osasuna","Fenerbahce","Brentford"
   ];
 
-  var koMapCache = null, koMapSeed = 0;
-  function koMap(){
-    if (!drawState || !drawState.done || !drawState.seed) return null;
-    if (koMapCache && koMapSeed === drawState.seed) return koMapCache;
-    var pool = KO_POT.slice(), out = {};
-    for (var i = 0; i < KO_IN.length; i++){
-      if (!pool.length) break;
-      var r = rng(hashSeed("pick|" + drawState.seed + "|" + i));
-      var pick = pool[Math.floor(r() * pool.length) % pool.length];
-      out[KO_IN[i].n] = pick;
-      pool = pool.filter(function(c){ return c !== pick; });
-    }
-    koMapCache = out; koMapSeed = drawState.seed;
-    return out;
-  }
+  // The result of the live draw on 17 September, written down rather than
+  // worked out. It used to be derived from the seed in the database, which
+  // meant a reset could erase ten people's clubs - and did. These are now
+  // part of the page and nothing can touch them.
+  var KO_RESULT = {
+    1:  "Osasuna",      // Olamix
+    2:  "Fulham",       // David
+    3:  "Lyon",         // Adexzy
+    4:  "Gladbach",     // Salvage
+    8:  "Al Nassr",     // Ekene
+    10: "Ajax",         // Dee
+    11: "Everton",      // ZeezMann
+    13: "Brentford",    // Mayor
+    14: "Bournemouth",  // Collins
+    16: "FC Porto"      // Pyrex
+  };
+  function koMap(){ return KO_RESULT; }
 
   // What a player takes into the knockouts: their drawn club if they were in
   // the draw, otherwise the club they had all through the groups.
@@ -2845,7 +2847,7 @@
     // Only once there is nothing left to play in the groups.
     if (!result || !groupsComplete()){ bar.hidden = true; return; }
     bar.hidden = false;
-    var done  = drawState && drawState.done;
+    var done  = true;          // the draw has been run; this is a record now
     var now   = Date.now();
     // Before the doors open it is an announcement, not a button - there is
     // nothing to watch yet and a dead link is worse than a heads-up. The
