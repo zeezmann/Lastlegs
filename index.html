@@ -384,6 +384,12 @@
            border:1px solid var(--gold);border-left:4px solid var(--gold);
            background:linear-gradient(100deg,rgba(231,200,120,.14),rgba(231,200,120,.03) 60%)}
   .drawbar:hover{background:linear-gradient(100deg,rgba(231,200,120,.22),rgba(231,200,120,.06) 60%)}
+  .drawbar.soon{cursor:default;border-color:var(--line);border-left-color:var(--star);
+                background:linear-gradient(100deg,rgba(127,166,255,.10),rgba(127,166,255,.02) 60%)}
+  .drawbar.soon:hover{background:linear-gradient(100deg,rgba(127,166,255,.10),rgba(127,166,255,.02) 60%)}
+  .drawbar.soon .db-dot{background:var(--star);animation:none}
+  .drawbar.soon .db-lab{color:var(--star)}
+  .drawbar.soon .db-go{color:var(--muted)}
   .drawbar .db-l{display:flex;align-items:center;gap:9px;flex:none}
   .drawbar .db-dot{width:9px;height:9px;border-radius:50%;background:var(--live);
                    box-shadow:0 0 0 0 var(--live);animation:dbp 1.9s infinite}
@@ -999,7 +1005,7 @@
 
   // Bumped every time this file changes. Shown in the footer so you can tell at
   // a glance whether the copy being served is the copy you uploaded.
-  var BUILD = "v30";
+  var BUILD = "v31";
 
   /* ============================================================ */
 
@@ -2694,7 +2700,9 @@
   // One fixed moment worldwide, not "18:25 on your own clock". 17:25 UTC is
   // 18:25 in the UK and 19:25 in France on this date, so everybody gets the
   // bar at the same instant, twenty minutes before the first spin.
-  var DRAW_OPENS = Date.UTC(2026, 8, 17, 17, 25);
+  var DRAW_OPENS = Date.UTC(2026, 8, 17, 17, 25);   // bar goes live to everyone
+  var DRAW_AT    = Date.UTC(2026, 8, 17, 17, 45);   // first spin
+  var DRAW_TIME_TXT = "6:45pm UK \u00b7 7:45pm FR";
   var drawState = null, drawOpen = false;
 
   function renderDraw(){
@@ -2702,14 +2710,32 @@
     if (!bar) return;
     // Only once there is nothing left to play in the groups.
     if (!result || !groupsComplete()){ bar.hidden = true; return; }
-    if (!isAdmin && Date.now() < DRAW_OPENS){ bar.hidden = true; return; }
     bar.hidden = false;
-    var done = drawState && drawState.done;
-    $("drawBarLab").textContent = done ? "Done" : "Live now";
-    bar.querySelector(".db-t").textContent = done
-      ? "See the draw results \uD83C\uDFA1"
-      : "Watch the live draw \uD83C\uDFA1";
-    bar.querySelector(".db-dot").style.display = done ? "none" : "";
+    var done  = drawState && drawState.done;
+    var now   = Date.now();
+    // Before the doors open it is an announcement, not a button - there is
+    // nothing to watch yet and a dead link is worse than a heads-up.
+    var soon  = !done && now < DRAW_OPENS;
+    bar.classList.toggle("soon", soon);
+    bar.disabled = soon;
+
+    if (done){
+      $("drawBarLab").textContent = "Done";
+      bar.querySelector(".db-t").textContent = "See the draw results \uD83C\uDFA1";
+      bar.querySelector(".db-go").textContent = "Open";
+    } else if (soon){
+      $("drawBarLab").textContent = "Tonight";
+      bar.querySelector(".db-t").textContent = "Knockout club draw \u2014 live at " + DRAW_TIME_TXT;
+      var mins = Math.max(0, Math.round((DRAW_AT - now) / 60000));
+      var hh = Math.floor(mins / 60), mm = mins % 60;
+      bar.querySelector(".db-go").textContent = hh
+        ? ("in " + hh + "h " + mm + "m")
+        : (mins > 1 ? ("in " + mm + " mins") : "any minute");
+    } else {
+      $("drawBarLab").textContent = "Live now";
+      bar.querySelector(".db-t").textContent = "Watch the live draw \uD83C\uDFA1";
+      bar.querySelector(".db-go").textContent = "Open";
+    }
   }
 
   function openDraw(){
@@ -3231,7 +3257,9 @@
     showSetupHelp();
   }
 
-  var _db = $("drawBar"); if (_db) _db.onclick = openDraw;
+  var _db = $("drawBar");
+  if (_db) _db.onclick = function(){ if (!_db.classList.contains("soon")) openDraw(); };
+  setInterval(function(){ if (!drawOpen) renderDraw(); }, 30000);
   var _dc = $("drawClose"); if (_dc) _dc.onclick = closeDraw;
   document.addEventListener("keydown", function(e){
     if (e.key === "Escape" && drawOpen) closeDraw();
