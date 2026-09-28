@@ -415,6 +415,37 @@
              text-transform:uppercase}
   .drawclose:hover{color:var(--text);border-color:var(--star)}
 
+  /* the end-of-tournament board - built to be screenshotted */
+  .wrapcard{padding:34px 30px;border:1px solid var(--gold);
+            background:radial-gradient(120% 140% at 50% 0%,rgba(231,200,120,.16),rgba(231,200,120,.02) 55%,transparent 80%),var(--surface)}
+  .wr-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;
+              color:var(--gold);margin:0 0 10px;text-align:center}
+  .wr-title{font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.03em;
+            font-size:clamp(34px,7vw,60px);line-height:1;margin:0 0 28px;text-align:center;color:var(--text)}
+  .wr-trophies{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
+  .wr-t{padding:22px 20px;border:1px solid var(--line);background:var(--ground-2);text-align:center}
+  .wr-t.cup{border-color:var(--gold)}
+  .wr-t .lab{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;
+             text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+  .wr-t .who{display:block;font-family:var(--display);font-size:clamp(26px,5vw,40px);font-weight:700;
+             line-height:1.05;color:var(--text)}
+  .wr-t.cup .who{color:var(--gold)}
+  .wr-t .club{display:block;font-family:var(--mono);font-size:12px;letter-spacing:.09em;
+              text-transform:uppercase;color:var(--muted);margin-top:7px}
+  .wr-t .beat{display:block;font-size:13.5px;color:var(--dim);margin-top:11px}
+  .wr-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px}
+  .wr-s{padding:14px;border:1px solid var(--line-soft);background:var(--ground-2)}
+  .wr-s .l{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+           text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+  .wr-s b{display:block;font-family:var(--display);font-size:21px;font-weight:600;color:var(--text)}
+  .wr-s .s{display:block;font-size:12.5px;color:var(--muted);margin-top:3px}
+  .wr-foot{margin:24px 0 0;text-align:center;font-family:var(--mono);font-size:11.5px;
+           letter-spacing:.13em;text-transform:uppercase;color:var(--dim)}
+  @media (max-width:620px){
+    .wr-trophies{grid-template-columns:1fr}
+    .wrapcard{padding:26px 18px}
+  }
+
   /* group club -> knockout club */
   .hands{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px}
   .hand{display:flex;align-items:center;justify-content:space-between;gap:14px;
@@ -797,6 +828,7 @@
       <span class="stat"><span class="dot on" id="d1"></span> Claimed <b id="claimCount">0/16</b></span>
       <span class="stat"><span class="dot" id="d2"></span> Draw <b id="drawState">Sealed</b></span>
       <span class="stat">Group games <b id="playedCount">0/112</b></span>
+      <span class="stat" id="frozenTag" hidden>Results final</span>
     </div>
   </header>
 
@@ -911,6 +943,16 @@
     </details>
   </section>
 
+  <section id="wrapSec" hidden>
+    <div class="wrapcard" id="wrapCard">
+      <p class="wr-eyebrow">FC 26 &middot; The FIFA Cup</p>
+      <h2 class="wr-title">That's a <span class="gold">wrap</span></h2>
+      <div class="wr-trophies" id="wrTrophies"></div>
+      <div class="wr-stats" id="wrStats"></div>
+      <p class="wr-foot" id="wrFoot"></p>
+    </div>
+  </section>
+
   <section id="handSec" hidden>
     <div class="sec-head">
       <h2>Clubs for the knockouts</h2>
@@ -1020,6 +1062,10 @@
   // Anyone opening the page with #gaffer7742 on the end can key numbers in,
   // run the draws and type scores. Everyone else just watches.
   var ADMIN_KEY = "gaffer7742";
+  // Tournament over. Every score box is read-only from here, so a stray tap
+  // can't rewrite history. Set this to false if a genuine correction is
+  // needed, fix it, then set it back.
+  var FROZEN = true;
 
   // ---- names. Change these and everything on the page follows. ----
   var NAME_LINE1 = "The FIFA";     // big first line of the title
@@ -1036,7 +1082,7 @@
 
   // Bumped every time this file changes. Shown in the footer so you can tell at
   // a glance whether the copy being served is the copy you uploaded.
-  var BUILD = "v43";
+  var BUILD = "v44";
 
   /* ============================================================ */
 
@@ -1778,7 +1824,7 @@
     inp.type = "number"; inp.min = "0"; inp.max = "30"; inp.inputMode = "numeric";
     inp.id = arrRef.key + idx + "-" + which;
     inp.setAttribute("aria-label", "Goals");
-    inp.disabled = !!locked || !isAdmin;
+    inp.disabled = !!locked || !isAdmin || FROZEN;
     var s = legScore(arrRef.data[idx]);
     inp.value = s ? String(s[which]) : "";
     if (s) inp.className = "filled";
@@ -2819,7 +2865,7 @@
 
   var GROUP_ORDER = ["chaseSec","claimSec","resultSec","ladderSec","mineSec","projSec",
                      "recSec","teamSec","fixtureSec","koSec","verifySec"];
-  var KO_ORDER    = ["koSec","mineSec","handSec","recSec","resultSec",
+  var KO_ORDER    = ["wrapSec","koSec","mineSec","handSec","recSec","resultSec",
                      "fixtureSec","teamSec","claimSec","verifySec",
                      "ladderSec","projSec","chaseSec"];
 
@@ -3074,6 +3120,88 @@
     });
     fullCache = Object.keys(rows).map(function(k){ return rows[k]; });
     return fullCache;
+  }
+
+  /* ---------- the end of it ---------- */
+
+  function renderWrap(){
+    var sec = $("wrapSec");
+    if (!sec) return;
+    var champ = result ? tieState("cup", CUP_DEF.length - 1) : null;
+    if (!champ || !champ.winner){ sec.hidden = true; return; }
+    var spoon = tieState("spoon", SPOON_DEF.length - 1);
+    sec.hidden = false;
+
+    var tro = $("wrTrophies"); tro.innerHTML = "";
+    function trophy(cls, label, st){
+      var d = document.createElement("div"); d.className = "wr-t" + (cls ? " " + cls : "");
+      var l = document.createElement("span"); l.className = "lab"; l.textContent = label;
+      var w = document.createElement("span"); w.className = "who";
+      w.textContent = st.winner || "\u2014";
+      d.appendChild(l); d.appendChild(w);
+      if (st.winner){
+        var c = koClub(numOf(st.winner));
+        if (c){ var cl = document.createElement("span"); cl.className = "club"; cl.textContent = c; d.appendChild(cl); }
+        var loser = st.winner === st.a.name ? st.b.name : st.a.name;
+        if (loser && st.aggA !== null && st.aggB !== null){
+          var mine = st.winner === st.a.name ? st.aggA : st.aggB;
+          var theirs = st.winner === st.a.name ? st.aggB : st.aggA;
+          var b = document.createElement("span"); b.className = "beat";
+          b.textContent = (mine === theirs)
+            ? ("edged " + loser + " " + mine + "\u2013" + theirs + " on group finish")
+            : ("beat " + loser + " " + mine + "\u2013" + theirs + " on aggregate");
+          d.appendChild(b);
+        }
+      }
+      tro.appendChild(d);
+    }
+    trophy("cup", CUP_NAME, champ);
+    trophy("", SPOON_NAME, spoon);
+
+    // the numbers people will argue about for the next year
+    var all = fullTally().filter(function(r){ return r.p > 0; });
+    var boot = all.slice().sort(function(x, y){ return (y.gf/y.p) - (x.gf/x.p) || y.gf - x.gf; })[0];
+    var leak = all.slice().sort(function(x, y){ return (y.ga/y.p) - (x.ga/x.p) || y.ga - x.ga; })[0];
+    var streak = null;
+    all.forEach(function(r){
+      var n = longestStreak(r.form, "W");
+      if (n > 1 && (!streak || n > streak.n)) streak = { n:n, name:r.name };
+    });
+    var goals = 0, games = 0;
+    all.forEach(function(r){ goals += r.gf; games += r.p; });
+    games = Math.round(games / 2);
+
+    var big = null;
+    var every = [];
+    ties.forEach(function(t){
+      [t.i1, t.i2].forEach(function(i){
+        var sc = legScore(S.r[i]); if (sc) every.push({ a:t.a, b:t.b, s:sc });
+      });
+    });
+    koLegs().forEach(function(L){ every.push({ a:L.a, b:L.b, s:L.s }); });
+    every.forEach(function(g){
+      var m = Math.abs(g.s[0] - g.s[1]);
+      if (!big || m > big.m) big = { m:m, g:g };
+    });
+
+    var host = $("wrStats"); host.innerHTML = "";
+    function stat(label, value, sub){
+      var d = document.createElement("div"); d.className = "wr-s";
+      var l = document.createElement("span"); l.className = "l"; l.textContent = label;
+      var b = document.createElement("b"); b.textContent = value;
+      var sx = document.createElement("span"); sx.className = "s"; sx.textContent = sub || "";
+      d.appendChild(l); d.appendChild(b); d.appendChild(sx);
+      host.appendChild(d);
+    }
+    if (boot) stat("Golden Boot", boot.name, boot.gf + " goals \u00b7 " + (boot.gf/boot.p).toFixed(2) + " a game");
+    if (leak) stat("Leakiest defence", leak.name, leak.ga + " shipped \u00b7 " + (leak.ga/leak.p).toFixed(2) + " a game");
+    if (streak) stat("Best run", streak.n + " wins", streak.name + " on the bounce");
+    if (big) stat("Biggest hammering", big.g.s[0] + "\u2013" + big.g.s[1],
+                  nameOf(big.g.a) + " v " + nameOf(big.g.b));
+    stat("Goals scored", String(goals), "across the whole thing");
+
+    $("wrFoot").textContent = PLAYERS + " players \u00b7 " + games
+      + " games played \u00b7 FC 26";
   }
 
   function renderRecords(){
@@ -3374,7 +3502,9 @@
       : (n >= PLAYERS ? "All numbers in · ready to draw" : "Draw sealed · " + (PLAYERS-n) + " numbers free");
     $("seedTag").textContent = result ? ("Draw seed " + result.seed.toString(16).toUpperCase()) : "";
     if (!(result && groupsComplete())) $("tableTitle").textContent = (result && pl) ? "Groups & table" : "The draw";
-    $("resetBtn").hidden = !isAdmin;
+    $("resetBtn").hidden = !isAdmin || FROZEN;
+    var fz = $("frozenTag");
+    if (fz) fz.hidden = !FROZEN;
     // Spectators just see the build. The draw counter is gaffer-only.
     $("buildTag").textContent = "Build " + BUILD + ((isAdmin && S.rd) ? (" · draw " + (S.rd + 1)) : "");
 
@@ -3403,7 +3533,7 @@
   // Rebuilding those under the cursor is what used to eat half-typed scores.
   function renderScoreDependents(){
     standCache = null; fullCache = null;
-    renderStatus(); renderBoard(); renderResult(); renderLadder(); renderMine(); renderProjection(); renderRecords(); renderBoot(); renderChase(); renderDraw(); renderHand(); renderKO(); orderSections(); stampSeen();
+    renderStatus(); renderBoard(); renderResult(); renderLadder(); renderMine(); renderProjection(); renderRecords(); renderBoot(); renderChase(); renderDraw(); renderHand(); renderKO(); renderWrap(); orderSections(); stampSeen();
   }
 
   function typingInAScoreBox(){
@@ -3460,7 +3590,7 @@
     } else { result = null; ties = []; }
     renderNames(); renderClubRule(); placeClaimSec();
     renderLive(); renderStatus(); renderBoard(); renderGrid(); renderClaimBox();
-    renderResult(); renderLadder(); renderMine(); renderProjection(); renderRecords(); renderBoot(); renderChase(); renderDraw(); renderHand(); orderSections();
+    renderResult(); renderLadder(); renderMine(); renderProjection(); renderRecords(); renderBoot(); renderChase(); renderDraw(); renderHand(); renderWrap(); orderSections();
     renderTeams(); renderFixtures(); renderKO(); renderVerify();
     stampSeen();
     firstPaint = false;
